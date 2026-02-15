@@ -5,7 +5,8 @@ import { X, FileText, Calendar, Building2, User, MapPin, Loader2, CheckCircle, T
 import { DEPENDENCIAS, USUARIOS } from '@/lib/mocks/data';
 import { format } from 'date-fns';
 import { PQRService } from '@/services/pqr.service';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { UserService } from '@/services/user.service';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 
 interface CreatePQRModalProps {
@@ -66,7 +67,13 @@ const CATEGORIAS = [
 
 export default function CreatePQRModal({ isOpen, onClose }: CreatePQRModalProps) {
     const queryClient = useQueryClient();
-    const [isGeocoding, setIsGeocoding] = useState(false);
+
+    const { data: users } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => UserService.getAll(),
+    });
+
+    const allUsers = users || USUARIOS;
     const [formData, setFormData] = useState({
         radicado: `INF-2026-${String(Math.floor(Math.random() * 1000)).padStart(4, '0')}`,
         fechaIngreso: format(new Date(), 'yyyy-MM-dd'),
@@ -134,7 +141,8 @@ export default function CreatePQRModal({ isOpen, onClose }: CreatePQRModalProps)
                 evidenciaUrl: data.evidenciaUrl,
                 tieneRespuesta: data.tieneRespuesta,
                 observacionesInternas: data.observacionesInternas,
-                asignadoA: data.tecnicoAsignado || undefined
+                asignadoA: data.tecnicoAsignado || undefined,
+                coordinadorResponsable: data.coordinadorResponsable || undefined
             });
         },
         onSuccess: () => {
@@ -177,36 +185,6 @@ export default function CreatePQRModal({ isOpen, onClose }: CreatePQRModalProps)
 
     const handleChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleGeoreference = async () => {
-        if (!formData.direccion) {
-            alert('⚠️ Ingrese primero la dirección física');
-            return;
-        }
-
-        setIsGeocoding(true);
-        try {
-            const query = encodeURIComponent(`${formData.direccion}, Pereira, Risaralda, Colombia`);
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
-            const data = await response.json();
-
-            if (data && data.length > 0) {
-                const { lat, lon } = data[0];
-                setFormData(prev => ({
-                    ...prev,
-                    lat: parseFloat(lat),
-                    lng: parseFloat(lon)
-                }));
-            } else {
-                alert('🔍 No se pudieron obtener coordenadas exactas. Intente ser más específico.');
-            }
-        } catch (error) {
-            console.error('Error geocoding:', error);
-            alert('❌ Error al conectar con el servicio de mapas');
-        } finally {
-            setIsGeocoding(false);
-        }
     };
 
     const handleSubmit = () => {
@@ -413,46 +391,13 @@ export default function CreatePQRModal({ isOpen, onClose }: CreatePQRModalProps)
                                 <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-2">
                                     Dirección Física
                                 </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={formData.direccion}
-                                        onChange={(e) => handleChange('direccion', e.target.value)}
-                                        placeholder="Ej: Cra 7 # 19 - 20"
-                                        className="flex-1 px-4 py-3 rounded-xl border-2 border-zinc-200 focus:border-emerald-500 focus:outline-none font-semibold"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleGeoreference}
-                                        disabled={isGeocoding}
-                                        className={cn(
-                                            "px-4 rounded-xl font-bold text-[10px] uppercase transition-all flex items-center gap-2 border-2",
-                                            formData.lat !== 0
-                                                ? "bg-emerald-600 border-emerald-600 text-white"
-                                                : "bg-white border-zinc-200 text-zinc-500 hover:border-emerald-500 hover:text-emerald-600"
-                                        )}
-                                    >
-                                        {isGeocoding ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : formData.lat !== 0 ? (
-                                            <>
-                                                <CheckCircle className="h-4 w-4" />
-                                                Listo
-                                            </>
-                                        ) : (
-                                            <>
-                                                <MapPin className="h-4 w-4" />
-                                                Georeferenciar
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                                {formData.lat !== 0 && (
-                                    <p className="text-[10px] text-emerald-600 font-bold mt-2 ml-1 italic flex items-center gap-1">
-                                        <TrendingUp className="h-3 w-3" />
-                                        Coordenadas capturadas: {formData.lat.toFixed(6)}, {formData.lng.toFixed(6)}
-                                    </p>
-                                )}
+                                <input
+                                    type="text"
+                                    value={formData.direccion}
+                                    onChange={(e) => handleChange('direccion', e.target.value)}
+                                    placeholder="Ej: Cra 7 # 19 - 20"
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-zinc-200 focus:border-emerald-500 focus:outline-none font-semibold"
+                                />
                             </div>
 
                             <div>
@@ -671,12 +616,22 @@ export default function CreatePQRModal({ isOpen, onClose }: CreatePQRModalProps)
                                 </label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
-                                    <input
-                                        type="text"
-                                        value="Pendiente..."
-                                        disabled
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-zinc-200 bg-zinc-50 font-semibold text-zinc-400"
-                                    />
+                                    <select
+                                        id="coordinador-responsable-select"
+                                        value={formData.coordinadorResponsable}
+                                        onChange={(e) => handleChange('coordinadorResponsable', e.target.value)}
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-zinc-200 focus:border-orange-500 focus:outline-none font-semibold appearance-none bg-white"
+                                    >
+                                        <option value="">--- SELECCIONAR COORDINADOR ---</option>
+                                        {allUsers
+                                            .filter(u => u.rol === 'DIRECTOR_DEPENDENCIA' && (formData.dependenciaId ? u.dependenciaId === formData.dependenciaId : true))
+                                            .map((coord) => (
+                                                <option key={coord.id} value={coord.id}>
+                                                    {coord.nombre}
+                                                </option>
+                                            ))
+                                        }
+                                    </select>
                                 </div>
                             </div>
 
@@ -691,11 +646,14 @@ export default function CreatePQRModal({ isOpen, onClose }: CreatePQRModalProps)
                                         className="w-full px-4 py-3 rounded-xl border-2 border-zinc-200 focus:border-orange-500 focus:outline-none font-semibold appearance-none bg-white"
                                     >
                                         <option value="">Seleccione...</option>
-                                        {USUARIOS.filter(u => u.rol === 'TECNICO').map((tecnico) => (
-                                            <option key={tecnico.id} value={tecnico.id}>
-                                                {tecnico.nombre}
-                                            </option>
-                                        ))}
+                                        {allUsers
+                                            .filter(u => u.rol === 'TECNICO' && (formData.dependenciaId ? u.dependenciaId === formData.dependenciaId : true))
+                                            .map((tecnico) => (
+                                                <option key={tecnico.id} value={tecnico.id}>
+                                                    {tecnico.nombre}
+                                                </option>
+                                            ))
+                                        }
                                     </select>
                                 </div>
                             </div>

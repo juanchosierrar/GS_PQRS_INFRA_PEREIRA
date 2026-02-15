@@ -20,29 +20,29 @@ export const USUARIOS: Usuario[] = [
     { id: 'usr-2', nombre: 'Ing. Carlos Diseño', email: 'carlos.obras@pereira.gov.co', rol: 'DIRECTOR_DEPENDENCIA', dependenciaId: 'dep-2', cargo: 'Director de Obras' },
 
     // Parques (dep-1)
-    { id: 'usr-3', nombre: 'Téc. Pedro Parques', email: 'pedro.parques@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-1', cargo: 'Técnico Senior' },
-    { id: 'usr-7', nombre: 'Téc. María Podas', email: 'maria.podas@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-1', cargo: 'Esp. Forestal' },
-    { id: 'usr-8', nombre: 'Téc. Luis Jardines', email: 'luis.jardines@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-1', cargo: 'Técnico de Campo' },
+    { id: 'usr-3', nombre: 'Téc. Pedro Parques', email: 'pedro.parques@pereira.gov.co', telefono: '3101234567', rol: 'TECNICO', dependenciaId: 'dep-1', cargo: 'Técnico Senior' },
+    { id: 'usr-7', nombre: 'Téc. María Podas', email: 'maria.podas@pereira.gov.co', telefono: '3112345678', rol: 'TECNICO', dependenciaId: 'dep-1', cargo: 'Esp. Forestal' },
+    { id: 'usr-8', nombre: 'Téc. Luis Jardines', email: 'luis.jardines@pereira.gov.co', telefono: '3123456789', rol: 'TECNICO', dependenciaId: 'dep-1', cargo: 'Técnico de Campo' },
 
     // Obras (dep-2)
-    { id: 'usr-6', nombre: 'Téc. Roberto Obras', email: 'roberto.obras@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-2', cargo: 'Técnico Civil' },
-    { id: 'usr-10', nombre: 'Téc. Clara Vigas', email: 'clara.vigas@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-2', cargo: 'Maestro de Obra' },
-    { id: 'usr-11', nombre: 'Téc. Diego Planos', email: 'diego.planos@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-2', cargo: 'Inspector Técnico' },
+    { id: 'usr-6', nombre: 'Téc. Roberto Obras', email: 'roberto.obras@pereira.gov.co', telefono: '3134567890', rol: 'TECNICO', dependenciaId: 'dep-2', cargo: 'Técnico Civil' },
+    { id: 'usr-10', nombre: 'Téc. Clara Vigas', email: 'clara.vigas@pereira.gov.co', telefono: '3145678901', rol: 'TECNICO', dependenciaId: 'dep-2', cargo: 'Maestro de Obra' },
+    { id: 'usr-11', nombre: 'Téc. Diego Planos', email: 'diego.planos@pereira.gov.co', telefono: '3156789012', rol: 'TECNICO', dependenciaId: 'dep-2', cargo: 'Inspector Técnico' },
 
     // Talleres (dep-3)
-    { id: 'usr-4', nombre: 'Téc. Ana Talleres', email: 'ana.talleres@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-3', cargo: 'Mecánico Jefe' },
-    { id: 'usr-13', nombre: 'Téc. Jorge Frenos', email: 'jorge.frenos@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-3', cargo: 'Mecánico de Pesados' },
-    { id: 'usr-14', nombre: 'Téc. Mario Motores', email: 'mario.motores@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-3', cargo: 'Auxiliar de Taller' },
+    { id: 'usr-4', nombre: 'Téc. Ana Talleres', email: 'ana.talleres@pereira.gov.co', telefono: '3167890123', rol: 'TECNICO', dependenciaId: 'dep-3', cargo: 'Mecánico Jefe' },
+    { id: 'usr-13', nombre: 'Téc. Jorge Frenos', email: 'jorge.frenos@pereira.gov.co', telefono: '3178901234', rol: 'TECNICO', dependenciaId: 'dep-3', cargo: 'Mecánico de Pesados' },
+    { id: 'usr-14', nombre: 'Téc. Mario Motores', email: 'mario.motores@pereira.gov.co', telefono: '3189012345', rol: 'TECNICO', dependenciaId: 'dep-3', cargo: 'Auxiliar de Taller' },
 
     // Privada (dep-4)
-    { id: 'usr-5', nombre: 'Téc. Lucía Privada', email: 'lucia.privada@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-4', cargo: 'Enlace de Gestión' },
-    { id: 'usr-16', nombre: 'Téc. Sonia Enlace', email: 'sonia.enlace@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-4', cargo: 'Analista de Datos' },
-    { id: 'usr-17', nombre: 'Téc. Rafael Gestión', email: 'rafael.gestion@pereira.gov.co', rol: 'TECNICO', dependenciaId: 'dep-4', cargo: 'Gestor Administrativo' },
+    { id: 'usr-5', nombre: 'Téc. Lucía Privada', email: 'lucia.privada@pereira.gov.co', telefono: '3190123456', rol: 'TECNICO', dependenciaId: 'dep-4', cargo: 'Enlace de Gestión' },
+    { id: 'usr-16', nombre: 'Téc. Sonia Enlace', email: 'sonia.enlace@pereira.gov.co', telefono: '3009876543', rol: 'TECNICO', dependenciaId: 'dep-4', cargo: 'Analista de Datos' },
+    { id: 'usr-17', nombre: 'Téc. Rafael Gestión', email: 'rafael.gestion@pereira.gov.co', telefono: '3018765432', rol: 'TECNICO', dependenciaId: 'dep-4', cargo: 'Gestor Administrativo' },
 ];
 
 const today = new Date();
 
-export const COMUNAS = ['Cuba', 'Centro', 'Villavicencio', 'Consota', 'San Joaquín', 'El Oso', 'Perla del Otún', 'Rocío'];
+export const COMUNAS = ['Cuba', 'Centro', 'Villavicencio', 'Consota', 'San Joaquín', 'El Oso', 'Perla del Otún', 'Rocío', 'Ferrocarril'];
 
 export const PQRS_MOCK: PQR[] = [
     // Vencidas (Rojo)

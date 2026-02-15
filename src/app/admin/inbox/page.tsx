@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { Suspense, useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PQRService } from '@/services/pqr.service';
+import { UserService } from '@/services/user.service';
 import { DEPENDENCIAS, USUARIOS, COMUNAS } from '@/lib/mocks/data';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -16,7 +17,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import StatCard from '@/components/StatCard';
 import { useAuthStore } from '@/store/useAuthStore';
 
-export default function InboxPage() {
+const COORDINADORES_MAP: Record<string, string> = {
+    'dep-1': 'usr-3', // Téc. Pedro Parques
+    'dep-2': 'usr-2', // Ing. Carlos Diseño
+    'dep-3': 'usr-4', // Téc. Ana Talleres
+    'dep-4': 'usr-5', // Téc. Lucía Privada
+};
+
+function InboxContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const queryClient = useQueryClient();
@@ -36,19 +44,39 @@ export default function InboxPage() {
 
     const [assigningPqrId, setAssigningPqrId] = useState<string | null>(null);
     const [selectedDependencia, setSelectedDependencia] = useState<string>('');
+    const [selectedComuna, setSelectedComuna] = useState<string>('');
+    const [selectedTecnico, setSelectedTecnico] = useState<string>('');
 
-    const { data: pqrs, isLoading } = useQuery({
+    const { data: pqrs, isLoading: isLoadingPQRs } = useQuery({
         queryKey: ['pqrs'],
         queryFn: () => PQRService.getAll(),
     });
 
+    const { data: users, isLoading: isLoadingUsers } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => UserService.getAll(),
+    });
+
+    const isLoading = isLoadingPQRs || isLoadingUsers;
+    const allUsers = users || USUARIOS;
+
     const assignMutation = useMutation({
-        mutationFn: ({ pqrId, dependenciaId }: { pqrId: string; dependenciaId: string }) =>
-            PQRService.assignToDependency(pqrId, dependenciaId),
-        onSuccess: () => {
+        mutationFn: ({ pqrId, dependenciaId, comuna, tecnicoId }: { pqrId: string; dependenciaId: string; comuna: string; tecnicoId?: string }) =>
+            PQRService.assignToDependency(pqrId, dependenciaId, comuna, tecnicoId),
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['pqrs'] });
+
+            const tecnico = allUsers.find(u => u.id === data.asignadoA);
+            if (tecnico) {
+                alert(`✅ Radicado asignado exitosamente.\n📲 Notificaciones enviadas a ${tecnico.nombre} vía Email y WhatsApp.`);
+            } else {
+                alert('✅ Radicado asignado exitosamente.');
+            }
+
             setAssigningPqrId(null);
             setSelectedDependencia('');
+            setSelectedComuna('');
+            setSelectedTecnico('');
         },
     });
 
@@ -91,8 +119,13 @@ export default function InboxPage() {
     }, [baseFilteredPQRs, filterKpi]);
 
     const handleAssign = (pqrId: string) => {
-        if (!selectedDependencia) return;
-        assignMutation.mutate({ pqrId, dependenciaId: selectedDependencia });
+        if (!selectedDependencia || !selectedComuna) return;
+        assignMutation.mutate({
+            pqrId,
+            dependenciaId: selectedDependencia,
+            comuna: selectedComuna,
+            tecnicoId: selectedTecnico || undefined
+        });
     };
 
     if (isLoading) {
@@ -238,6 +271,7 @@ export default function InboxPage() {
                             <tr className="bg-zinc-50 border-b-2 border-zinc-100">
                                 <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Radicado</th>
                                 <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Solicitud / Ciudadano</th>
+                                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Comuna</th>
                                 <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Estado</th>
                                 <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Dependencia</th>
                                 <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Plazo</th>
@@ -249,7 +283,7 @@ export default function InboxPage() {
                             {filteredPQRs.length > 0 ? (
                                 filteredPQRs.map((pqr) => {
                                     const dep = DEPENDENCIAS.find(d => d.id === pqr.dependenciaId);
-                                    const tecnico = USUARIOS.find(u => u.id === pqr.asignadoA);
+                                    const tecnico = allUsers.find(u => u.id === pqr.asignadoA);
 
                                     return (
                                         <tr key={pqr.id} className="group hover:bg-zinc-50/50 transition-all">
@@ -273,6 +307,12 @@ export default function InboxPage() {
                                                         <UserCircle className="h-3 w-3 text-zinc-400" />
                                                         {pqr.ciudadano.nombre}
                                                     </div>
+                                                </div>
+                                            </td>
+                                            <td className="p-6">
+                                                <div className="flex items-center gap-2 text-sm font-bold text-zinc-600">
+                                                    <MapPin className="h-4 w-4 text-primary" />
+                                                    {pqr.ubicacion.comuna || <span className="text-zinc-300 italic">No esp...</span>}
                                                 </div>
                                             </td>
                                             <td className="p-6">
@@ -323,7 +363,10 @@ export default function InboxPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     {!pqr.dependenciaId && (
                                                         <button
-                                                            onClick={() => setAssigningPqrId(pqr.id)}
+                                                            onClick={() => {
+                                                                setAssigningPqrId(pqr.id);
+                                                                setSelectedComuna(pqr.ubicacion.comuna || '');
+                                                            }}
                                                             className="px-3 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
                                                         >
                                                             Asignar Área
@@ -374,20 +417,52 @@ export default function InboxPage() {
                                 <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Seleccionar Dependencia</label>
                                 <select
                                     value={selectedDependencia}
-                                    onChange={(e) => setSelectedDependencia(e.target.value)}
+                                    onChange={(e) => {
+                                        const depId = e.target.value;
+                                        setSelectedDependencia(depId);
+                                        setSelectedTecnico(COORDINADORES_MAP[depId] || '');
+                                    }}
                                     className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-amber-500 focus:outline-none font-bold text-lg appearance-none bg-zinc-50"
                                 >
-                                    <option value="">-- SELECCIONAR --</option>
+                                    <option value="">-- SELECCIONAR ÁREA --</option>
                                     {DEPENDENCIAS.map((dep) => (
                                         <option key={dep.id} value={dep.id}>{dep.nombre}</option>
                                     ))}
                                 </select>
                             </div>
 
+                            {selectedTecnico && (
+                                <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Coordinador Responsable (Auto-asignado)</label>
+                                    <div className="flex items-center gap-3 px-5 py-4 rounded-2xl border-2 border-emerald-100 bg-emerald-50 text-emerald-800 font-bold">
+                                        <User className="h-5 w-5 text-emerald-600" />
+                                        {allUsers.find(u => u.id === selectedTecnico)?.nombre}
+                                    </div>
+                                    <p className="text-[9px] font-bold text-emerald-600 uppercase ml-1 italic tracking-wider">
+                                        * El radicado pasará a estado EN_PROCESO automáticamente
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Seleccionar Comuna</label>
+                                <select
+                                    value={selectedComuna}
+                                    onChange={(e) => setSelectedComuna(e.target.value)}
+                                    className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-amber-500 focus:outline-none font-bold text-lg appearance-none bg-zinc-50"
+                                >
+                                    <option value="">-- SELECCIONAR COMUNA --</option>
+                                    {COMUNAS.map((comuna) => (
+                                        <option key={comuna} value={comuna}>{comuna}</option>
+                                    ))}
+                                </select>
+                                {!selectedComuna && <p className="text-[10px] font-bold text-rose-500 uppercase ml-1">* La comuna es obligatoria para continuar</p>}
+                            </div>
+
                             <div className="flex gap-3 pt-2">
                                 <button
                                     onClick={() => handleAssign(assigningPqrId)}
-                                    disabled={!selectedDependencia || assignMutation.isPending}
+                                    disabled={!selectedDependencia || !selectedComuna || assignMutation.isPending}
                                     className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-4 rounded-2xl font-black uppercase text-sm shadow-xl shadow-amber-500/30 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
                                 >
                                     {assignMutation.isPending ? 'Procesando...' : 'Confirmar'}
@@ -396,6 +471,7 @@ export default function InboxPage() {
                                     onClick={() => {
                                         setAssigningPqrId(null);
                                         setSelectedDependencia('');
+                                        setSelectedComuna('');
                                     }}
                                     className="px-6 py-4 rounded-2xl border-2 border-zinc-100 font-black uppercase text-xs text-zinc-500 hover:bg-zinc-50 transition-all"
                                 >
@@ -409,5 +485,13 @@ export default function InboxPage() {
 
             <CreatePQRModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
+    );
+}
+
+export default function InboxPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center text-muted-foreground uppercase font-black tracking-widest animate-pulse">Cargando Inbox...</div>}>
+            <InboxContent />
+        </Suspense>
     );
 }

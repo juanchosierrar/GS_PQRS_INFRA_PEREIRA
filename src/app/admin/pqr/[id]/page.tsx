@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { PQRService } from '@/services/pqr.service';
+import { UserService } from '@/services/user.service';
 import { DEPENDENCIAS, TIPOS_TRAMITE, USUARIOS } from '@/lib/mocks/data';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Badge } from '@/components/ui/Badge';
@@ -31,10 +32,18 @@ export default function PQRDetailsPage() {
 
     const pqrId = params.id as string;
 
-    const { data: pqr, isLoading } = useQuery({
+    const { data: pqr, isLoading: isLoadingPQR } = useQuery({
         queryKey: ['pqr', pqrId],
         queryFn: () => PQRService.getById(pqrId),
     });
+
+    const { data: users, isLoading: isLoadingUsers } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => UserService.getAll(),
+    });
+
+    const isLoading = isLoadingPQR || isLoadingUsers;
+    const allUsers = users || USUARIOS;
 
     const updateMutation = useMutation({
         mutationFn: (updatedPQR: PQR) => PQRService.update(pqrId, updatedPQR),
@@ -118,7 +127,7 @@ export default function PQRDetailsPage() {
     const displayPQR = isEditing ? editedPQR! : pqr;
     const dependencia = DEPENDENCIAS.find(d => d.id === displayPQR.dependenciaId);
     const tipoTramite = TIPOS_TRAMITE.find(t => t.id === displayPQR.tipotramiteId);
-    const tecnicoAsignado = displayPQR.asignadoA ? USUARIOS.find(u => u.id === displayPQR.asignadoA) : null;
+    const tecnicoAsignado = displayPQR.asignadoA ? allUsers.find(u => u.id === displayPQR.asignadoA) : null;
 
     // RBAC
     const isAdminGeneral = user?.rol === 'ADMIN_GENERAL';
@@ -202,10 +211,10 @@ export default function PQRDetailsPage() {
                 {/* Left Column - Main Info */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Basic Info Card */}
-                    <div className="bg-white border-2 border-zinc-100 rounded-[2rem] p-8 shadow-sm">
+                    <div className="bg-white border-2 border-zinc-200 rounded-[2rem] p-8 shadow-md">
                         <div className="flex items-start justify-between mb-8">
                             <div className="flex items-center gap-4">
-                                <div className="text-4xl font-black text-primary tracking-tighter">
+                                <div className="text-5xl font-black text-primary tracking-tighter drop-shadow-sm">
                                     {displayPQR.radicado}
                                 </div>
                                 <Badge variant="outline" className="uppercase font-black px-3 py-1 text-[10px] tracking-widest bg-zinc-100 text-zinc-600 border-none">
@@ -216,7 +225,7 @@ export default function PQRDetailsPage() {
 
                         <div className="space-y-6">
                             <div>
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2 block">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-600 mb-2 block">
                                     Título
                                 </label>
                                 {isEditing ? (
@@ -232,7 +241,7 @@ export default function PQRDetailsPage() {
                             </div>
 
                             <div>
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2 block">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-600 mb-2 block">
                                     Descripción
                                 </label>
                                 {isEditing ? (
@@ -243,13 +252,15 @@ export default function PQRDetailsPage() {
                                         rows={4}
                                     />
                                 ) : (
-                                    <p className="text-sm text-muted-foreground leading-relaxed">{displayPQR.descripcion}</p>
+                                    <p className="text-sm font-medium text-zinc-700 leading-relaxed bg-zinc-50/50 p-4 rounded-3xl border border-zinc-200">
+                                        {displayPQR.descripcion}
+                                    </p>
                                 )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2 block">
+                                    <label className="text-xs font-black uppercase tracking-widest text-zinc-600 mb-2 block">
                                         Estado
                                     </label>
                                     {isEditing ? (
@@ -270,7 +281,7 @@ export default function PQRDetailsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2 block">
+                                    <label className="text-xs font-black uppercase tracking-widest text-zinc-600 mb-2 block">
                                         Tipo de Trámite
                                     </label>
                                     {isEditing ? (
@@ -284,7 +295,7 @@ export default function PQRDetailsPage() {
                                             ))}
                                         </select>
                                     ) : (
-                                        <p className="text-sm font-semibold text-zinc-700">{tipoTramite?.nombre}</p>
+                                        <p className="text-sm font-bold text-zinc-900">{tipoTramite?.nombre}</p>
                                     )}
                                 </div>
                             </div>
@@ -292,9 +303,9 @@ export default function PQRDetailsPage() {
                     </div>
 
                     {/* Citizen Info Card */}
-                    <div className="bg-white border-2 border-zinc-100 rounded-[2rem] p-8 shadow-sm">
-                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400 mb-8 flex items-center gap-3">
-                            <div className="h-1 w-8 bg-zinc-200 rounded-full" />
+                    <div className="bg-white border-2 border-zinc-200 rounded-[2rem] p-8 shadow-md">
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mb-8 flex items-center gap-3">
+                            <div className="h-1.5 w-12 bg-zinc-300 rounded-full" />
                             Información del Ciudadano
                         </h3>
 
@@ -323,7 +334,7 @@ export default function PQRDetailsPage() {
                             />
 
                             <div>
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-1.5">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-600 mb-2 flex items-center gap-1.5">
                                     <IdCard className="h-3.5 w-3.5" />
                                     Tipo Documento
                                 </label>
@@ -352,7 +363,7 @@ export default function PQRDetailsPage() {
                             />
 
                             <div className="md:col-span-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2 block">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-600 mb-2 block">
                                     Sujeto Solicitante
                                 </label>
                                 {isEditing ? (
@@ -374,9 +385,9 @@ export default function PQRDetailsPage() {
                     </div>
 
                     {/* Location Card */}
-                    <div className="bg-white border-2 border-zinc-100 rounded-[2rem] p-8 shadow-sm">
-                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400 mb-8 flex items-center gap-3">
-                            <div className="h-1 w-8 bg-zinc-200 rounded-full" />
+                    <div className="bg-white border-2 border-zinc-200 rounded-[2rem] p-8 shadow-md">
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mb-8 flex items-center gap-3">
+                            <div className="h-1.5 w-12 bg-zinc-300 rounded-full" />
                             Ubicación
                         </h3>
 
@@ -395,20 +406,34 @@ export default function PQRDetailsPage() {
                                     isEditing={isEditing}
                                     onChange={(val) => handleFieldChange('ubicacion.comuna', val)}
                                 />
-                                <InfoField
-                                    label="Latitud"
-                                    value={displayPQR.ubicacion.lat.toString()}
-                                    isEditing={isEditing}
-                                    onChange={(val) => handleFieldChange('ubicacion.lat', parseFloat(val) || 0)}
-                                    type="number"
-                                />
-                                <InfoField
-                                    label="Longitud"
-                                    value={displayPQR.ubicacion.lng.toString()}
-                                    isEditing={isEditing}
-                                    onChange={(val) => handleFieldChange('ubicacion.lng', parseFloat(val) || 0)}
-                                    type="number"
-                                />
+                                <div className="col-span-2">
+                                    <div className="bg-zinc-50 rounded-2xl p-4 border border-zinc-100 flex items-center justify-center gap-4 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-primary italic">LAT:</span> {displayPQR.ubicacion.lat.toFixed(6)}
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-primary italic">LNG:</span> {displayPQR.ubicacion.lng.toFixed(6)}
+                                        </div>
+                                    </div>
+                                    {isEditing && (
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <InfoField
+                                                label="Latitud"
+                                                value={displayPQR.ubicacion.lat.toString()}
+                                                isEditing={isEditing}
+                                                onChange={(val) => handleFieldChange('ubicacion.lat', parseFloat(val) || 0)}
+                                                type="number"
+                                            />
+                                            <InfoField
+                                                label="Longitud"
+                                                value={displayPQR.ubicacion.lng.toString()}
+                                                isEditing={isEditing}
+                                                onChange={(val) => handleFieldChange('ubicacion.lng', parseFloat(val) || 0)}
+                                                type="number"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -435,7 +460,7 @@ export default function PQRDetailsPage() {
                                 <div className="space-y-10 animate-in fade-in duration-500">
                                     <div className="grid md:grid-cols-2 gap-8">
                                         <div className="space-y-4">
-                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Estado Inicial (Antes)</p>
+                                            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Estado Inicial (Antes)</p>
                                             <div className="aspect-video rounded-3xl bg-zinc-100 flex items-center justify-center border-2 border-dashed border-zinc-200 overflow-hidden">
                                                 {pqr.fichaTecnica.fotoAntes ? (
                                                     <img src={pqr.fichaTecnica.fotoAntes} className="w-full h-full object-cover" alt="Antes" />
@@ -443,7 +468,7 @@ export default function PQRDetailsPage() {
                                             </div>
                                         </div>
                                         <div className="space-y-4">
-                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Resultado Final (Después)</p>
+                                            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Resultado Final (Después)</p>
                                             <div className="aspect-video rounded-3xl bg-zinc-100 flex items-center justify-center border-2 border-dashed border-zinc-200 overflow-hidden">
                                                 {pqr.fichaTecnica.fotoDespues ? (
                                                     <img src={pqr.fichaTecnica.fotoDespues} className="w-full h-full object-cover" alt="Después" />
@@ -454,15 +479,27 @@ export default function PQRDetailsPage() {
 
                                     <div className="grid md:grid-cols-2 gap-10">
                                         <div className="space-y-6">
-                                            <div className="bg-zinc-50 rounded-2xl p-6 border border-zinc-100">
-                                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                                    <MapPinned className="h-3 w-3" /> Coordenadas de Visita
+                                            <div className="bg-white p-4 rounded-2xl border border-zinc-200">
+                                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1 flex items-center gap-2">
+                                                    <User className="h-3 w-3 text-zinc-500" /> Recibió la Visita
                                                 </p>
-                                                <p className="font-bold text-zinc-700">{pqr.fichaTecnica.coordenadas.lat}, {pqr.fichaTecnica.coordenadas.lng}</p>
+                                                <p className="text-sm font-black text-zinc-900">{pqr.fichaTecnica.nombreRecibe}</p>
+                                            </div>
+                                            <div className="bg-white p-4 rounded-2xl border border-zinc-200">
+                                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1 flex items-center gap-2">
+                                                    <Phone className="h-3 w-3 text-zinc-500" /> Teléfono Contacto
+                                                </p>
+                                                <p className="text-sm font-black text-zinc-900">{pqr.fichaTecnica.telefonoVisita}</p>
+                                            </div>
+                                            <div className="bg-white p-4 rounded-2xl border border-zinc-200">
+                                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1 flex items-center gap-2">
+                                                    <MapPin className="h-3 w-3 text-zinc-500" /> Dirección Visita
+                                                </p>
+                                                <p className="text-sm font-black text-zinc-900">{pqr.fichaTecnica.direccionVisita}</p>
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Observaciones de Campo</p>
-                                                <p className="text-sm font-medium text-zinc-600 leading-relaxed bg-white p-4 rounded-2xl border border-zinc-100">{pqr.fichaTecnica.observaciones}</p>
+                                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-3">Observaciones de Campo</p>
+                                                <p className="text-sm font-bold text-zinc-800 leading-relaxed bg-white p-4 rounded-2xl border border-zinc-200">{pqr.fichaTecnica.observaciones}</p>
                                             </div>
                                         </div>
                                         <div className="bg-emerald-50/50 rounded-3xl p-8 border-2 border-emerald-100 border-l-8 border-l-emerald-500">
@@ -487,9 +524,9 @@ export default function PQRDetailsPage() {
                 {/* Right Column - Metadata */}
                 <div className="space-y-6">
                     {/* Timeline Card */}
-                    <div className="bg-white border-2 border-zinc-100 border-l-4 border-l-blue-500 rounded-3xl p-6 shadow-sm">
-                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-blue-600 mb-6 flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
+                    <div className="bg-white border-2 border-zinc-200 border-l-8 border-l-blue-600 rounded-3xl p-6 shadow-md transition-all hover:shadow-lg">
+                        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-blue-700 mb-6 flex items-center gap-2">
+                            <Clock className="h-5 w-5" />
                             Cronología
                         </h3>
 
@@ -499,7 +536,7 @@ export default function PQRDetailsPage() {
                                     <Calendar className="h-3.5 w-3.5" />
                                     Fecha Creación
                                 </div>
-                                <p className="text-sm font-semibold text-zinc-700 pl-5">
+                                <p className="text-sm font-bold text-zinc-800 pl-5">
                                     {format(parseISO(displayPQR.fechaCreacion), 'dd/MM/yyyy HH:mm')}
                                 </p>
                             </div>
@@ -510,7 +547,7 @@ export default function PQRDetailsPage() {
                                     Fecha Vencimiento
                                 </div>
                                 <div className="flex items-center justify-between pl-5 pr-2">
-                                    <p className="text-sm font-semibold text-zinc-700">
+                                    <p className="text-sm font-bold text-zinc-800">
                                         {format(parseISO(displayPQR.fechaVencimiento), 'dd/MM/yyyy HH:mm')}
                                     </p>
                                     {(() => {
@@ -519,10 +556,10 @@ export default function PQRDetailsPage() {
                                         if (isResolved) return null;
 
                                         let styles = "bg-zinc-50 text-zinc-600 border-zinc-100";
-                                        if (days <= 0) styles = "bg-rose-50 text-rose-600 border-rose-200 animate-pulse";
-                                        else if (days <= 3) styles = "bg-red-50 text-red-600 border-red-200";
-                                        else if (days <= 5) styles = "bg-amber-50 text-amber-600 border-amber-200";
-                                        else if (days >= 10) styles = "bg-emerald-50 text-emerald-600 border-emerald-200";
+                                        if (days <= 0) styles = "bg-rose-100 text-rose-700 border-rose-300 animate-pulse font-black shadow-sm ring-1 ring-rose-300";
+                                        else if (days <= 3) styles = "bg-red-100 text-red-700 border-red-300 font-bold";
+                                        else if (days <= 5) styles = "bg-amber-100 text-amber-700 border-amber-300 font-bold";
+                                        else if (days >= 10) styles = "bg-emerald-100 text-emerald-700 border-emerald-300 font-bold";
 
                                         return (
                                             <div className={cn("px-2 py-1 rounded text-[10px] font-black border uppercase tracking-tighter", styles)}>
@@ -548,9 +585,9 @@ export default function PQRDetailsPage() {
                     </div>
 
                     {/* Assignment Card */}
-                    <div className="bg-white border-2 border-zinc-100 border-l-4 border-l-primary rounded-3xl p-6 shadow-sm">
-                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-                            <Building2 className="h-4 w-4" />
+                    <div className="bg-white border-2 border-zinc-200 border-l-8 border-l-primary rounded-3xl p-6 shadow-md transition-all hover:shadow-lg">
+                        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+                            <Building2 className="h-5 w-5" />
                             Asignación
                         </h3>
 
@@ -570,7 +607,7 @@ export default function PQRDetailsPage() {
                                         ))}
                                     </select>
                                 ) : (
-                                    <p className="text-sm font-semibold text-zinc-700">{dependencia?.nombre}</p>
+                                    <p className="text-sm font-bold text-zinc-800">{dependencia?.nombre}</p>
                                 )}
                             </div>
 
@@ -586,12 +623,12 @@ export default function PQRDetailsPage() {
                                         disabled={!isAdminGeneral && !isDirectorDep}
                                     >
                                         <option value="">Sin asignar</option>
-                                        {USUARIOS.filter(u => u.rol === 'TECNICO' && u.dependenciaId === displayPQR.dependenciaId).map((tec) => (
+                                        {allUsers.filter(u => u.rol === 'TECNICO' && u.dependenciaId === displayPQR.dependenciaId).map((tec) => (
                                             <option key={tec.id} value={tec.id}>{tec.nombre}</option>
                                         ))}
                                     </select>
                                 ) : (
-                                    <p className="text-sm font-semibold text-zinc-700">{tecnicoAsignado?.nombre || 'No asignado'}</p>
+                                    <p className="text-sm font-bold text-zinc-800">{tecnicoAsignado?.nombre || 'No asignado'}</p>
                                 )}
                             </div>
                         </div>
@@ -649,17 +686,42 @@ export default function PQRDetailsPage() {
 
 function FichaForm({ onSubmit, onCancel, isPending }: { onSubmit: (data: any) => void, onCancel: () => void, isPending: boolean }) {
     const [formData, setFormData] = useState({
+        nombreRecibe: '',
+        telefonoVisita: '',
+        direccionVisita: '',
         observaciones: '',
         analisisTecnico: '',
         fotoAntes: '',
         fotoDespues: '',
+        coordenadas: {
+            lat: 4.8133,
+            lng: -75.6961
+        }
     });
+
+    const [isGeocoding, setIsGeocoding] = useState(false);
+
+    const handleGetCoordinates = async () => {
+        if (!formData.direccionVisita) return;
+
+        setIsGeocoding(true);
+        // Simulating coordinate generation for Pereira
+        setTimeout(() => {
+            setFormData(prev => ({
+                ...prev,
+                coordenadas: {
+                    lat: 4.8133 + (Math.random() * 0.005),
+                    lng: -75.6961 + (Math.random() * 0.005)
+                }
+            }));
+            setIsGeocoding(false);
+        }, 800);
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit({
             ...formData,
-            coordenadas: { lat: 4.8133 + (Math.random() * 0.01), lng: -75.6961 + (Math.random() * 0.01) }, // Mocked
             fechaVisita: new Date().toISOString()
         });
     };
@@ -668,8 +730,8 @@ function FichaForm({ onSubmit, onCancel, isPending }: { onSubmit: (data: any) =>
         <form onSubmit={handleSubmit} className="space-y-8 animate-in slide-in-from-bottom duration-500">
             <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                        <Camera className="h-3 w-3" /> Foto Antes de la Intervención
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+                        <Camera className="h-3 w-3 text-zinc-500" /> Foto Antes de la Intervención
                     </label>
                     <div className="h-40 rounded-3xl border-2 border-dashed border-zinc-200 bg-zinc-50 flex flex-col items-center justify-center gap-2 hover:bg-zinc-100 transition-colors cursor-pointer overflow-hidden relative">
                         {formData.fotoAntes ? (
@@ -689,8 +751,8 @@ function FichaForm({ onSubmit, onCancel, isPending }: { onSubmit: (data: any) =>
                     </div>
                 </div>
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                        <Camera className="h-3 w-3" /> Foto Después de la Intervención
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+                        <Camera className="h-3 w-3 text-zinc-500" /> Foto Después de la Intervención
                     </label>
                     <div className="h-40 rounded-3xl border-2 border-dashed border-zinc-200 bg-zinc-50 flex flex-col items-center justify-center gap-2 hover:bg-zinc-100 transition-colors cursor-pointer overflow-hidden relative">
                         {formData.fotoDespues ? (
@@ -711,9 +773,67 @@ function FichaForm({ onSubmit, onCancel, isPending }: { onSubmit: (data: any) =>
                 </div>
             </div>
 
+            <div className="grid md:grid-cols-3 gap-6">
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+                        <User className="h-3 w-3 text-zinc-500" /> Nombre de quien recibe
+                    </label>
+                    <input
+                        required
+                        type="text"
+                        value={formData.nombreRecibe}
+                        onChange={(e) => setFormData({ ...formData, nombreRecibe: e.target.value })}
+                        className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-primary focus:outline-none font-medium text-sm transition-all"
+                        placeholder="Nombre y Apellido"
+                    />
+                </div>
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+                        <Phone className="h-3 w-3 text-zinc-500" /> Teléfono Contacto
+                    </label>
+                    <input
+                        required
+                        type="tel"
+                        value={formData.telefonoVisita}
+                        onChange={(e) => setFormData({ ...formData, telefonoVisita: e.target.value })}
+                        className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-primary focus:outline-none font-medium text-sm transition-all"
+                        placeholder="300 000 0000"
+                    />
+                </div>
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+                        <MapPin className="h-3 w-3 text-zinc-500" /> Dirección de la visita
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            required
+                            type="text"
+                            value={formData.direccionVisita}
+                            onChange={(e) => setFormData({ ...formData, direccionVisita: e.target.value })}
+                            className="flex-1 px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-primary focus:outline-none font-medium text-sm transition-all"
+                            placeholder="Calle 123 # 45-67, Pereira"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleGetCoordinates}
+                            disabled={isGeocoding || !formData.direccionVisita}
+                            className="px-4 rounded-2xl bg-zinc-100 hover:bg-zinc-200 transition-all flex items-center justify-center disabled:opacity-50"
+                            title="Integrar Coordenadas"
+                        >
+                            {isGeocoding ? (
+                                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                            ) : (
+                                <MapPinned className="h-5 w-5 text-primary" />
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
             <div className="grid gap-6">
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Observaciones de Campo</label>
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Observaciones de Campo</label>
                     <textarea
                         required
                         value={formData.observaciones}
@@ -724,7 +844,7 @@ function FichaForm({ onSubmit, onCancel, isPending }: { onSubmit: (data: any) =>
                     />
                 </div>
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Respuesta / Análisis Técnico Final</label>
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Respuesta / Análisis Técnico Final</label>
                     <textarea
                         required
                         value={formData.analisisTecnico}
@@ -775,7 +895,7 @@ function InfoField({
 }) {
     return (
         <div className={className}>
-            <label className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-1.5">
+            <label className="text-xs font-black uppercase tracking-widest text-zinc-600 mb-2 flex items-center gap-1.5">
                 {icon}
                 {label}
             </label>
@@ -788,7 +908,7 @@ function InfoField({
                     step={type === 'number' ? 'any' : undefined}
                 />
             ) : (
-                <p className="text-sm font-semibold text-zinc-700">{value || 'No especificado'}</p>
+                <p className="text-sm font-bold text-zinc-800">{value || 'No especificado'}</p>
             )}
         </div>
     );

@@ -26,7 +26,7 @@ export default function TecnicoPage() {
 
     const mutation = useMutation({
         mutationFn: ({ id, response }: { id: string, response: string }) =>
-            PQRService.updateStatus(id, 'RESUELTO', response),
+            PQRService.updateStatus(id, 'RESUELTA', response),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['pqrs-tecnico'] });
             setSelectedPqrId(null);
@@ -158,11 +158,11 @@ export default function TecnicoPage() {
         <div className="max-w-md mx-auto space-y-4">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Mis Tareas</h2>
-                <Badge variant='outline'>{pqrs?.filter(p => p.estado !== 'RESUELTO').length || 0} Pendientes</Badge>
+                <Badge variant='outline'>{pqrs?.filter(p => p.estado !== 'RESUELTA').length || 0} Pendientes</Badge>
             </div>
 
             <div className="space-y-3">
-                {pqrs?.filter(p => p.estado !== 'RESUELTO').map(pqr => (
+                {pqrs?.filter(p => p.estado !== 'RESUELTA').map(pqr => (
                     <div
                         key={pqr.id}
                         onClick={() => setSelectedPqrId(pqr.id)}
@@ -179,10 +179,10 @@ export default function TecnicoPage() {
                     </div>
                 ))}
 
-                {pqrs?.filter(p => p.estado === 'RESUELTO').length! > 0 && (
+                {pqrs?.filter(p => p.estado === 'RESUELTA').length! > 0 && (
                     <>
                         <h3 className="text-sm font-bold text-muted-foreground mt-8 mb-2">Completadas</h3>
-                        {pqrs?.filter(p => p.estado === 'RESUELTO').map(pqr => (
+                        {pqrs?.filter(p => p.estado === 'RESUELTA').map(pqr => (
                             <div key={pqr.id} className="bg-muted/30 border rounded-xl p-4 opacity-70 flex justify-between items-center">
                                 <div className="space-y-1">
                                     <p className="text-xs font-bold text-muted-foreground">{pqr.radicado}</p>

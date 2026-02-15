@@ -10,6 +10,8 @@ export interface Usuario {
     id: string;
     nombre: string;
     email: string;
+    telefono?: string;
+    whatsapp?: string;
     rol: UserRole;
     dependenciaId?: string;
     cargo: string;
@@ -34,6 +36,9 @@ export interface FichaTecnica {
         lat: number;
         lng: number;
     };
+    nombreRecibe: string;
+    telefonoVisita: string;
+    direccionVisita: string;
     observaciones: string;
     analisisTecnico: string;
     fechaVisita: string;

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { PQRService } from '@/services/pqr.service';
+import { UserService } from '@/services/user.service';
 import { DEPENDENCIAS, USUARIOS } from '@/lib/mocks/data';
 import { Badge } from '@/components/ui/Badge';
 import { Building2, UserPlus, Loader2, UserCircle, AlertCircle, CheckCircle, TrendingUp, LayoutDashboard, Clock } from 'lucide-react';
@@ -20,10 +21,18 @@ export default function DependenciaPage() {
 
     const dependencia = DEPENDENCIAS.find(d => d.codigo === codigo);
 
-    const { data: allPqrs, isLoading } = useQuery({
+    const { data: allPqrs, isLoading: isLoadingPQRs } = useQuery({
         queryKey: ['pqrs'],
         queryFn: () => PQRService.getAll(),
     });
+
+    const { data: users, isLoading: isLoadingUsers } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => UserService.getAll(),
+    });
+
+    const isLoading = isLoadingPQRs || isLoadingUsers;
+    const allUsers = users || USUARIOS;
 
     const assignMutation = useMutation({
         mutationFn: ({ pqrId, tecnicoId }: { pqrId: string; tecnicoId: string }) =>
@@ -63,7 +72,7 @@ export default function DependenciaPage() {
         p.dependenciaId === dependencia.id &&
         (p.estado === 'RESUELTA' || p.estado === 'CERRADA')
     ) || [];
-    const tecnicos = USUARIOS.filter(u => u.dependenciaId === dependencia.id && u.rol === 'TECNICO');
+    const tecnicos = allUsers.filter(u => u.dependenciaId === dependencia.id && u.rol === 'TECNICO');
 
     const getSemaforo = (fechaVencimiento: string, estado: string) => {
         if (estado === 'RESUELTA' || estado === 'CERRADA') return { variant: 'success' as const, label: 'Completado', color: 'text-emerald-500' };
@@ -319,7 +328,7 @@ export default function DependenciaPage() {
                     </h3>
                     <div className="grid gap-4">
                         {pqrsEnProceso.map((pqr) => {
-                            const tecnico = USUARIOS.find(u => u.id === pqr.asignadoA);
+                            const tecnico = allUsers.find(u => u.id === pqr.asignadoA);
                             const semaforo = getSemaforo(pqr.fechaVencimiento, pqr.estado);
                             return (
                                 <button

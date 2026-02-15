@@ -1,6 +1,8 @@
-import { PQRS_MOCK, TIPOS_TRAMITE, DEPENDENCIAS } from '@/lib/mocks/data';
+import { PQRS_MOCK, TIPOS_TRAMITE, DEPENDENCIAS, USUARIOS } from '@/lib/mocks/data';
+import { UserService } from './user.service';
 import { PQR as PQRType, PQRStatus } from '@/types';
 import { addDays, format } from 'date-fns';
+import { NotificationService } from './notification.service';
 
 const LATENCY = 500;
 
@@ -58,6 +60,7 @@ export class PQRService {
         tieneRespuesta?: boolean;
         observacionesInternas?: string;
         asignadoA?: string;
+        coordinadorResponsable?: string;
     }): Promise<PQRType> {
         await new Promise(resolve => setTimeout(resolve, LATENCY));
 
@@ -89,6 +92,7 @@ export class PQRService {
                 sujeto: data.ciudadano.sujeto as any
             } as any,
             asignadoA: data.asignadoA,
+            coordinadorResponsable: data.coordinadorResponsable,
             claseJuridica: data.claseJuridica,
             categoria: data.categoria,
             evidenciaUrl: data.evidenciaUrl,
@@ -133,10 +137,18 @@ export class PQRService {
 
         pqrs[index] = updatedPqr;
         this.savePQRsToStorage(pqrs);
+
+        // Notificar al técnico
+        const users = await UserService.getAll();
+        const tecnico = users.find(u => u.id === tecnicoId);
+        if (tecnico) {
+            NotificationService.notifyTechnicianAssignment(tecnico, updatedPqr);
+        }
+
         return updatedPqr;
     }
 
-    static async assignToDependency(pqrId: string, dependenciaId: string): Promise<PQRType> {
+    static async assignToDependency(pqrId: string, dependenciaId: string, comuna?: string, tecnicoId?: string): Promise<PQRType> {
         await new Promise(resolve => setTimeout(resolve, LATENCY));
         const pqrs = this.getPQRsFromStorage();
         const index = pqrs.findIndex(p => p.id === pqrId);
@@ -145,11 +157,26 @@ export class PQRService {
         const updatedPqr: PQRType = {
             ...pqrs[index],
             dependenciaId,
-            estado: 'POR_ASIGNAR'
+            asignadoA: tecnicoId || pqrs[index].asignadoA,
+            estado: tecnicoId ? 'EN_PROCESO' : 'POR_ASIGNAR',
+            ubicacion: {
+                ...pqrs[index].ubicacion,
+                comuna: comuna || pqrs[index].ubicacion.comuna
+            }
         };
 
         pqrs[index] = updatedPqr;
         this.savePQRsToStorage(pqrs);
+
+        // Notificar al técnico si se ha auto-asignado uno
+        if (tecnicoId) {
+            const users = await UserService.getAll();
+            const tecnico = users.find(u => u.id === tecnicoId);
+            if (tecnico) {
+                NotificationService.notifyTechnicianAssignment(tecnico, updatedPqr);
+            }
+        }
+
         return updatedPqr;
     }
 
