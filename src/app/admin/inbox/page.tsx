@@ -8,10 +8,9 @@ import { DEPENDENCIAS, USUARIOS, COMUNAS } from '@/lib/mocks/data';
 import { Badge } from '@/components/ui/Badge';
 import {
     Inbox, Building2, Loader2, UserCircle, AlertCircle,
-    CheckCircle2, Search, Filter, MapPin, ArrowRight, User, LayoutDashboard, Clock, PlusCircle
+    CheckCircle2, Search, Filter, MapPin, ArrowRight, User, LayoutDashboard, Clock
 } from 'lucide-react';
 import { format, parseISO, isPast, differenceInDays } from 'date-fns';
-import CreatePQRModal from '@/components/CreatePQRModal';
 import { cn } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import StatCard from '@/components/StatCard';
@@ -29,13 +28,17 @@ function InboxContent() {
     const searchParams = useSearchParams();
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Filtros
     const [searchTerm, setSearchTerm] = useState('');
     const [filterComuna, setFilterComuna] = useState('');
+    const [filterDependencia, setFilterDependencia] = useState(user?.rol === 'DIRECTOR_DEPENDENCIA' ? user.dependenciaId : '');
     const [filterEstado, setFilterEstado] = useState('');
     const [filterKpi, setFilterKpi] = useState<'all' | 'critical' | 'soon' | 'resolved' | null>(null);
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     // Nuevo filtro por técnico
     const searchTecnicoId = searchParams.get('tecnicoId');
@@ -95,11 +98,12 @@ function InboxContent() {
 
             const matchesComuna = filterComuna === '' || (pqr.ubicacion.comuna === filterComuna);
             const matchesEstado = filterEstado === '' || pqr.estado === filterEstado;
+            const matchesDependencia = filterDependencia === '' || pqr.dependenciaId === filterDependencia;
             const matchesTecnico = !activeTecnicoId || pqr.asignadoA === activeTecnicoId;
 
-            return matchesSearch && matchesComuna && matchesEstado && matchesTecnico;
+            return matchesSearch && matchesComuna && matchesEstado && matchesDependencia && matchesTecnico;
         });
-    }, [pqrs, searchTerm, filterComuna, filterEstado, activeTecnicoId]);
+    }, [pqrs, searchTerm, filterComuna, filterEstado, filterDependencia, activeTecnicoId]);
 
     const filteredPQRs = useMemo(() => {
         return baseFilteredPQRs.filter(pqr => {
@@ -117,6 +121,13 @@ function InboxContent() {
             return true;
         });
     }, [baseFilteredPQRs, filterKpi]);
+
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredPQRs.length / itemsPerPage);
+    const paginatedPQRs = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredPQRs.slice(start, start + itemsPerPage);
+    }, [filteredPQRs, currentPage]);
 
     const handleAssign = (pqrId: string) => {
         if (!selectedDependencia || !selectedComuna) return;
@@ -148,13 +159,6 @@ function InboxContent() {
                     </h2>
                     <p className="text-muted-foreground font-semibold text-xs tracking-[0.1em] uppercase opacity-70">Administración operativa y flujo de trabajo de radicados</p>
                 </div>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-primary to-blue-600 px-8 py-4 text-xs font-black text-white shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:scale-105 active:scale-95 uppercase tracking-widest"
-                >
-                    <PlusCircle className="mr-2 h-5 w-5" />
-                    NUEVA SOLICITUD
-                </button>
             </div>
 
             {/* KPI Section */}
@@ -198,7 +202,7 @@ function InboxContent() {
 
             {/* Filters Section */}
             <div className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-8 shadow-sm">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
                     <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
                             <Search className="h-3 w-3" />
@@ -246,7 +250,23 @@ function InboxContent() {
                             <option value="RESUELTA">RESUELTA</option>
                             <option value="DEVUELTA">DEVUELTA</option>
                             <option value="CERRADA">CERRADA</option>
-                            <option value="VENCIDA">VENCIDA</option>
+                        </select>
+                    </div>
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                            <Building2 className="h-3 w-3" />
+                            Dependencia
+                        </label>
+                        <select
+                            value={filterDependencia}
+                            disabled={user?.rol === 'DIRECTOR_DEPENDENCIA'}
+                            onChange={(e) => setFilterDependencia(e.target.value)}
+                            className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-primary focus:outline-none font-bold text-sm bg-zinc-50/50 transition-all hover:bg-white disabled:opacity-70 disabled:grayscale-[0.5]"
+                        >
+                            <option value="">Todas</option>
+                            {DEPENDENCIAS.map(d => (
+                                <option key={d.id} value={d.id}>{d.nombre}</option>
+                            ))}
                         </select>
                     </div>
                     <button
@@ -254,7 +274,9 @@ function InboxContent() {
                             setSearchTerm('');
                             setFilterComuna('');
                             setFilterEstado('');
+                            setFilterDependencia(user?.rol === 'DIRECTOR_DEPENDENCIA' ? user.dependenciaId || '' : '');
                             setFilterKpi(null);
+                            setCurrentPage(1);
                         }}
                         className="px-8 py-4 rounded-2xl border-2 border-zinc-100 bg-white hover:bg-zinc-50 text-zinc-700 font-black text-xs uppercase tracking-widest transition-all h-[58px]"
                     >
@@ -280,10 +302,14 @@ function InboxContent() {
                             </tr>
                         </thead>
                         <tbody className="divide-y-2 divide-zinc-50">
-                            {filteredPQRs.length > 0 ? (
-                                filteredPQRs.map((pqr) => {
+                            {paginatedPQRs.length > 0 ? (
+                                paginatedPQRs.map((pqr) => {
                                     const dep = DEPENDENCIAS.find(d => d.id === pqr.dependenciaId);
                                     const tecnico = allUsers.find(u => u.id === pqr.asignadoA);
+
+                                    // Coordinadores can assign to their dependency's technicians
+                                    const canAssign = user?.rol === 'ADMIN_GENERAL' ||
+                                        (user?.rol === 'DIRECTOR_DEPENDENCIA' && user?.dependenciaId === pqr.dependenciaId);
 
                                     return (
                                         <tr key={pqr.id} className="group hover:bg-zinc-50/50 transition-all">
@@ -361,15 +387,16 @@ function InboxContent() {
                                             </td>
                                             <td className="p-6">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    {!pqr.dependenciaId && (
+                                                    {canAssign && (
                                                         <button
                                                             onClick={() => {
                                                                 setAssigningPqrId(pqr.id);
                                                                 setSelectedComuna(pqr.ubicacion.comuna || '');
+                                                                setSelectedDependencia(pqr.dependenciaId || '');
                                                             }}
                                                             className="px-3 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
                                                         >
-                                                            Asignar Área
+                                                            {pqr.asignadoA ? 'Cambiar Técnico' : 'Asignar'}
                                                         </button>
                                                     )}
                                                     <button
@@ -396,6 +423,58 @@ function InboxContent() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="p-6 bg-zinc-50 border-t-2 border-zinc-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                            Mostrando <span className="text-zinc-900">{paginatedPQRs.length}</span> de <span className="text-zinc-900">{filteredPQRs.length}</span> registros
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => {
+                                    setCurrentPage(prev => Math.max(1, prev - 1));
+                                    document.querySelector('table')?.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                disabled={currentPage === 1}
+                                className="p-2 rounded-xl border-2 border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-100 disabled:opacity-50 transition-all shadow-sm"
+                            >
+                                <ArrowRight className="h-4 w-4 rotate-180" />
+                            </button>
+
+                            <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] md:max-w-none pb-1 md:pb-0">
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => {
+                                            setCurrentPage(i + 1);
+                                            document.querySelector('table')?.scrollIntoView({ behavior: 'smooth' });
+                                        }}
+                                        className={cn(
+                                            "min-w-[32px] h-8 rounded-xl font-black text-xs transition-all",
+                                            currentPage === i + 1
+                                                ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                                : "text-zinc-400 hover:bg-zinc-200"
+                                        )}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                                    document.querySelector('table')?.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                disabled={currentPage === totalPages}
+                                className="p-2 rounded-xl border-2 border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-100 disabled:opacity-50 transition-all shadow-sm"
+                            >
+                                <ArrowRight className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Modal de Asignación Rápida */}
@@ -414,15 +493,15 @@ function InboxContent() {
 
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Seleccionar Dependencia</label>
+                                <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Área Responsable</label>
                                 <select
                                     value={selectedDependencia}
+                                    disabled={user?.rol === 'DIRECTOR_DEPENDENCIA'}
                                     onChange={(e) => {
-                                        const depId = e.target.value;
-                                        setSelectedDependencia(depId);
-                                        setSelectedTecnico(COORDINADORES_MAP[depId] || '');
+                                        setSelectedDependencia(e.target.value);
+                                        setSelectedTecnico('');
                                     }}
-                                    className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-amber-500 focus:outline-none font-bold text-lg appearance-none bg-zinc-50"
+                                    className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-amber-500 focus:outline-none font-bold text-lg appearance-none bg-zinc-50 disabled:opacity-70 disabled:grayscale-[0.5]"
                                 >
                                     <option value="">-- SELECCIONAR ÁREA --</option>
                                     {DEPENDENCIAS.map((dep) => (
@@ -431,15 +510,24 @@ function InboxContent() {
                                 </select>
                             </div>
 
-                            {selectedTecnico && (
+                            {selectedDependencia && (
                                 <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-                                    <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Coordinador Responsable (Auto-asignado)</label>
-                                    <div className="flex items-center gap-3 px-5 py-4 rounded-2xl border-2 border-emerald-100 bg-emerald-50 text-emerald-800 font-bold">
-                                        <User className="h-5 w-5 text-emerald-600" />
-                                        {allUsers.find(u => u.id === selectedTecnico)?.nombre}
-                                    </div>
+                                    <label className="text-[10px] font-black uppercase text-zinc-400 ml-1">Seleccionar Técnico</label>
+                                    <select
+                                        value={selectedTecnico}
+                                        onChange={(e) => setSelectedTecnico(e.target.value)}
+                                        className="w-full px-5 py-4 rounded-2xl border-2 border-emerald-100 bg-emerald-50 text-emerald-800 font-bold text-lg appearance-none"
+                                    >
+                                        <option value="">-- SELECCIONAR TÉCNICO --</option>
+                                        {allUsers
+                                            .filter(u => u.rol === 'TECNICO' && u.dependenciaId === selectedDependencia)
+                                            .map(u => (
+                                                <option key={u.id} value={u.id}>{u.nombre}</option>
+                                            ))
+                                        }
+                                    </select>
                                     <p className="text-[9px] font-bold text-emerald-600 uppercase ml-1 italic tracking-wider">
-                                        * El radicado pasará a estado EN_PROCESO automáticamente
+                                        * El técnico recibirá una notificación para realizar la visita
                                     </p>
                                 </div>
                             )}
@@ -472,6 +560,7 @@ function InboxContent() {
                                         setAssigningPqrId(null);
                                         setSelectedDependencia('');
                                         setSelectedComuna('');
+                                        setSelectedTecnico('');
                                     }}
                                     className="px-6 py-4 rounded-2xl border-2 border-zinc-100 font-black uppercase text-xs text-zinc-500 hover:bg-zinc-50 transition-all"
                                 >
@@ -483,7 +572,6 @@ function InboxContent() {
                 </div>
             )}
 
-            <CreatePQRModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
     );
 }

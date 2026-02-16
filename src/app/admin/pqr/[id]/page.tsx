@@ -138,65 +138,72 @@ export default function PQRDetailsPage() {
     const canFillFicha = isTecnicoAsignado || isDirectorDep || isAdminGeneral;
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-10 animate-in fade-in duration-700">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white/40 backdrop-blur-sm p-6 rounded-[2rem] border border-white/50 shadow-sm">
+                <div className="flex items-center gap-6">
                     <button
                         onClick={() => router.push('/admin')}
-                        className="p-3 rounded-xl border-2 border-zinc-200 hover:bg-zinc-50 transition-all"
+                        className="p-4 rounded-2xl border-2 border-zinc-100 bg-white hover:bg-zinc-50 transition-all shadow-sm hover:shadow-md active:scale-95 group"
                     >
-                        <ArrowLeft className="h-5 w-5" />
+                        <ArrowLeft className="h-5 w-5 text-zinc-400 group-hover:text-blue-600 transition-colors" />
                     </button>
-                    <div className="space-y-1">
-                        <h2 className="text-4xl font-black tracking-tighter text-zinc-900 flex items-center gap-3 uppercase italic">
-                            <FileText className="h-10 w-10 text-primary not-italic" />
-                            Detalles de Solicitud
-                        </h2>
-                        <p className="text-muted-foreground font-medium">Información completa del radicado {pqr.radicado}</p>
+                    <div className="space-y-1.5">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-4xl font-black tracking-tighter text-zinc-900 flex items-center gap-4 uppercase italic">
+                                <FileText className="h-10 w-10 text-blue-600 not-italic" />
+                                Expediente Digital
+                            </h2>
+                            <Badge className="bg-blue-600/10 text-blue-600 border-none font-black px-4 py-1 text-[11px] uppercase tracking-widest rounded-full">
+                                {pqr.radicado}
+                            </Badge>
+                        </div>
+                        <p className="text-zinc-500 font-bold text-xs tracking-widest uppercase opacity-70">
+                            Gestión Integral de Solicitud Ciudadana
+                        </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                     {canFillFicha && pqr.estado !== 'RESUELTA' && pqr.estado !== 'CERRADA' && (
                         <button
                             onClick={() => setShowFichaForm(true)}
-                            className="inline-flex items-center justify-center rounded-xl bg-zinc-900 px-6 py-3 text-sm font-bold text-white shadow-xl transition-all hover:scale-105 active:scale-95"
+                            className="inline-flex items-center justify-center rounded-2xl bg-zinc-900 px-8 py-4 text-xs font-black text-white shadow-2xl transition-all hover:scale-[1.05] active:scale-95 border border-white/10 group uppercase tracking-widest"
                         >
-                            <Camera className="mr-2 h-5 w-5 text-emerald-400" />
-                            REGISTRAR VISITA
+                            <Camera className="mr-3 h-5 w-5 text-emerald-400 group-hover:rotate-12 transition-transform" />
+                            REGISTRAR VISITA TÉCNICA
                         </button>
                     )}
 
                     {canEditGeneral && (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                             {!isEditing ? (
                                 <button
                                     onClick={handleEdit}
-                                    className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-primary to-blue-600 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/40 hover:scale-105 active:scale-95"
+                                    className="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-8 py-4 text-xs font-black text-white shadow-xl shadow-blue-600/20 transition-all hover:shadow-2xl hover:shadow-blue-600/30 hover:scale-[1.05] active:scale-95 uppercase tracking-widest"
                                 >
-                                    <Edit2 className="mr-2 h-5 w-5" />
-                                    EDITAR
+                                    <Edit2 className="mr-3 h-5 w-5 stroke-[2.5px]" />
+                                    EDITAR EXPEDIENTE
                                 </button>
                             ) : (
                                 <>
                                     <button
                                         onClick={handleSave}
                                         disabled={updateMutation.isPending}
-                                        className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-emerald-300/30 transition-all hover:shadow-2xl hover:shadow-emerald-300/40 hover:scale-105 active:scale-95 disabled:opacity-50"
+                                        className="inline-flex items-center justify-center rounded-2xl bg-emerald-500 px-8 py-4 text-xs font-black text-white shadow-xl shadow-emerald-500/20 transition-all hover:shadow-2xl hover:shadow-emerald-500/30 hover:scale-[1.05] active:scale-95 uppercase tracking-widest disabled:opacity-50"
                                     >
                                         {updateMutation.isPending ? (
-                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                            <Loader2 className="mr-3 h-5 w-5 animate-spin" />
                                         ) : (
-                                            <Save className="mr-2 h-5 w-5" />
+                                            <Save className="mr-3 h-5 w-5" />
                                         )}
-                                        {updateMutation.isPending ? 'GUARDANDO...' : 'GUARDAR'}
+                                        {updateMutation.isPending ? 'PROCESANDO...' : 'GUARDAR CAMBIOS'}
                                     </button>
                                     <button
                                         onClick={handleCancel}
-                                        className="inline-flex items-center justify-center rounded-xl border-2 border-zinc-200 px-6 py-3 text-sm font-bold text-zinc-700 transition-all hover:bg-zinc-50"
+                                        className="inline-flex items-center justify-center rounded-2xl border-2 border-zinc-200 bg-white px-8 py-4 text-xs font-black text-zinc-600 transition-all hover:bg-zinc-50 hover:border-zinc-300 active:scale-95 uppercase tracking-widest"
                                     >
-                                        <X className="mr-2 h-5 w-5" />
+                                        <X className="mr-3 h-5 w-5" />
                                         CANCELAR
                                     </button>
                                 </>
@@ -894,8 +901,8 @@ function InfoField({
     type?: string;
 }) {
     return (
-        <div className={className}>
-            <label className="text-xs font-black uppercase tracking-widest text-zinc-600 mb-2 flex items-center gap-1.5">
+        <div className={cn("space-y-3 transition-all", className)}>
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 px-1">
                 {icon}
                 {label}
             </label>
@@ -904,11 +911,13 @@ function InfoField({
                     type={type}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-zinc-200 focus:border-primary focus:outline-none font-semibold text-sm"
+                    className="w-full px-6 py-4 rounded-2xl border-2 border-zinc-100 focus:border-blue-600 focus:bg-white focus:outline-none font-bold text-sm bg-zinc-50/50 transition-all shadow-inner"
                     step={type === 'number' ? 'any' : undefined}
                 />
             ) : (
-                <p className="text-sm font-bold text-zinc-800">{value || 'No especificado'}</p>
+                <div className="px-6 py-4 rounded-2xl bg-zinc-50 border border-zinc-100 shadow-sm">
+                    <p className="text-sm font-black text-zinc-800 tracking-tight uppercase">{value || 'NO SUMINISTRADO'}</p>
+                </div>
             )}
         </div>
     );

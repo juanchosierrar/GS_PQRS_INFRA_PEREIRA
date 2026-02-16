@@ -10,7 +10,7 @@ import { format, differenceInDays, parseISO, isPast } from 'date-fns';
 import {
     AlertCircle, Clock, CheckCircle2, PlusCircle, Search,
     BarChart3, LayoutDashboard, Building2, MapPin,
-    PieChart as PieIcon, TrendingUp, Activity, X
+    PieChart as PieIcon, TrendingUp, Activity, X, ChevronRight
 } from 'lucide-react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -170,33 +170,37 @@ function DashboardContent() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div className="space-y-1">
+        <div className="space-y-10 animate-in fade-in duration-700">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white/40 backdrop-blur-sm p-6 rounded-[2rem] border border-white/50 shadow-sm">
+                <div className="space-y-1.5 border-l-8 border-blue-600 pl-8">
                     <h2 className="text-4xl font-black tracking-tighter text-zinc-900 flex items-center gap-4 uppercase italic">
-                        <BarChart3 className="h-10 w-10 text-primary not-italic" />
-                        Tablero Estadístico
+                        <BarChart3 className="h-10 w-10 text-blue-600 not-italic" />
+                        Gobierno Inteligente
                     </h2>
-                    <p className="text-muted-foreground font-semibold text-xs tracking-[0.1em] uppercase opacity-70">Análisis de impacto y eficiencia de la gestión municipal</p>
+                    <p className="text-zinc-500 font-black text-[10px] tracking-[0.2em] uppercase opacity-70">
+                        ANÁLISIS DE IMPACTO Y EFICIENCIA OPERATIVA MUNICIPAL
+                    </p>
                 </div>
             </div>
 
             {/* Controles de Filtro Base */}
-            <div className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-8 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-6 items-end">
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-50 rounded-bl-full -mr-16 -mt-16 opacity-50" />
+
+                <div className="flex flex-col md:flex-row gap-8 items-end relative z-10">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Filtro por Comuna */}
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 px-1">
                                 <MapPin className="h-3 w-3" />
-                                Comuna
+                                Territorio / Comuna
                             </label>
                             <select
                                 value={filterComuna}
                                 onChange={(e) => setFilterComuna(e.target.value)}
-                                className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-primary focus:outline-none font-bold text-sm bg-zinc-50/50 transition-all hover:bg-white"
+                                className="w-full px-6 py-4 rounded-2xl border-2 border-zinc-100 focus:border-blue-600 focus:outline-none font-black text-xs uppercase tracking-widest bg-zinc-50/50 transition-all hover:bg-white"
                             >
-                                <option value="">Todas las comunas</option>
+                                <option value="">Toda la Ciudad</option>
                                 {comunasUnicas.map((comuna) => (
                                     <option key={comuna} value={comuna}>{comuna}</option>
                                 ))}
@@ -204,17 +208,17 @@ function DashboardContent() {
                         </div>
 
                         {/* Filtro por Dependencia */}
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 px-1">
                                 <Building2 className="h-3 w-3" />
-                                Dependencia
+                                Cartera / Dependencia
                             </label>
                             <select
                                 value={filterDependencia}
                                 onChange={(e) => setFilterDependencia(e.target.value)}
-                                className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-primary focus:outline-none font-bold text-sm bg-zinc-50/50 transition-all hover:bg-white"
+                                className="w-full px-6 py-4 rounded-2xl border-2 border-zinc-100 focus:border-blue-600 focus:outline-none font-black text-xs uppercase tracking-widest bg-zinc-50/50 transition-all hover:bg-white"
                             >
-                                <option value="">Todas las dependencias</option>
+                                <option value="">Todas las Dependencias</option>
                                 {DEPENDENCIAS.map((dep) => (
                                     <option key={dep.id} value={dep.id}>{dep.nombre}</option>
                                 ))}
@@ -222,17 +226,17 @@ function DashboardContent() {
                         </div>
 
                         {/* Filtro por Estado */}
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 px-1">
                                 <Activity className="h-3 w-3" />
-                                Estado
+                                Fase de Gestión
                             </label>
                             <select
                                 value={filterEstado}
                                 onChange={(e) => setFilterEstado(e.target.value)}
-                                className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-primary focus:outline-none font-bold text-sm bg-zinc-50/50 transition-all hover:bg-white"
+                                className="w-full px-6 py-4 rounded-2xl border-2 border-zinc-100 focus:border-blue-600 focus:outline-none font-black text-xs uppercase tracking-widest bg-zinc-50/50 transition-all hover:bg-white"
                             >
-                                <option value="">Todos los estados</option>
+                                <option value="">Cualquier Estado</option>
                                 {estadosUnicos.map((estado) => (
                                     <option key={estado} value={estado}>{estado}</option>
                                 ))}
@@ -249,144 +253,208 @@ function DashboardContent() {
                                 setFilterEstado('');
                                 setFilterKpi(null);
                             }}
-                            className="px-8 py-4 rounded-2xl border-2 border-zinc-100 bg-white hover:bg-zinc-50 text-zinc-700 font-black text-xs uppercase tracking-widest transition-all h-[58px]"
+                            className="px-10 py-4 rounded-2xl border-2 border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white hover:border-zinc-900 text-zinc-600 font-black text-[10px] uppercase tracking-[0.2em] transition-all h-[58px] shadow-sm hover:shadow-xl active:scale-95"
                         >
-                            <X className="h-4 w-4 inline mr-2" />
-                            Limpiar
+                            <X className="h-4 w-4 inline mr-2 stroke-[3px]" />
+                            RESETEAR
                         </button>
                     )}
                 </div>
             </div>
 
-            {/* KPI Summary Rows (Drives Charts) */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <StatCard
-                    title="Solicitudes Totales"
-                    value={baseFilteredPQRs.length}
-                    icon={<Search className="h-5 w-5" />}
-                    color="primary"
-                    active={filterKpi === 'all'}
-                    onClick={() => toggleKpiFilter('all')}
-                />
-                <StatCard
-                    title="Críticas / Vencidas"
-                    value={baseFilteredPQRs.filter(p => isPast(parseISO(p.fechaVencimiento)) && p.estado !== 'RESUELTA').length}
-                    icon={<AlertCircle className="h-5 w-5" />}
-                    color="destructive"
-                    active={filterKpi === 'critical'}
-                    onClick={() => toggleKpiFilter('critical')}
-                />
-                <StatCard
-                    title="Próximas a Vencer"
-                    value={baseFilteredPQRs.filter(p => {
-                        const diasRestantes = differenceInDays(parseISO(p.fechaVencimiento), new Date());
-                        return diasRestantes <= 2 && diasRestantes >= 0 && p.estado !== 'RESUELTA';
-                    }).length}
-                    icon={<Clock className="h-5 w-5" />}
-                    color="warning"
-                    active={filterKpi === 'soon'}
-                    onClick={() => toggleKpiFilter('soon')}
-                />
-                <StatCard
-                    title="Gestión Exitosa"
-                    value={baseFilteredPQRs.filter(p => p.estado === 'RESUELTA' || p.estado === 'CERRADA').length}
-                    icon={<CheckCircle2 className="h-5 w-5" />}
-                    color="success"
-                    active={filterKpi === 'resolved'}
-                    onClick={() => toggleKpiFilter('resolved')}
-                />
-            </div>
+            {/* Tab-specific Content */}
+            {activeTab === 'dependencias' ? (
+                <div className="grid gap-8 grid-cols-1 md:grid-cols-2 animate-in slide-in-from-bottom-4 duration-500">
+                    {DEPENDENCIAS.map(dep => {
+                        const depPQRs = pqrs?.filter(p => p.dependenciaId === dep.id) || [];
+                        const pending = depPQRs.filter(p => !p.asignadoA && p.estado !== 'RESUELTA').length;
+                        const inProcess = depPQRs.filter(p => p.asignadoA && p.estado !== 'RESUELTA').length;
+                        const resolved = depPQRs.filter(p => p.estado === 'RESUELTA' || p.estado === 'CERRADA').length;
 
-            {stats && (
-                <div className="grid gap-8 grid-cols-1 lg:grid-cols-2 animate-in slide-in-from-bottom-4 duration-500 pt-4">
-                    <ChartCard title="Distribución por Comuna" description="Incidencias registradas por sector geográfico">
-                        <ResponsiveContainer width="100%" height={320}>
-                            <BarChart data={stats.comuna}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                                <XAxis dataKey="name" fontSize={11} fontWeight="bold" tick={{ fill: '#52525b' }} angle={-15} textAnchor="end" height={60} />
-                                <YAxis fontSize={11} fontWeight="bold" tick={{ fill: '#52525b' }} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px', fontWeight: 'bold' }}
-                                    cursor={{ fill: 'rgba(37, 99, 235, 0.05)' }}
-                                />
-                                <Bar dataKey="value" fill="url(#barGradient)" radius={[10, 10, 0, 0]}>
-                                    <LabelList dataKey="value" position="top" style={{ fill: '#52525b', fontSize: '12px', fontWeight: 'bold' }} offset={10} />
-                                </Bar>
-                                <defs>
-                                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#2563eb" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.9} />
-                                    </linearGradient>
-                                </defs>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </ChartCard>
+                        return (
+                            <button
+                                key={dep.id}
+                                onClick={() => router.push(`/admin/dependencias/${dep.codigo}`)}
+                                className="bg-white border-2 border-zinc-100 rounded-[3rem] p-10 hover:border-primary/50 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group text-left relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-bl-[5rem] -mr-12 -mt-12 transition-transform group-hover:scale-110" />
 
-                    <ChartCard title="Estado Global" description="Porcentaje de solicitudes por fase actual">
-                        <ResponsiveContainer width="100%" height={320}>
-                            <PieChart>
-                                <Pie
-                                    data={stats.status}
-                                    cx="50%" cy="50%"
-                                    innerRadius={70} outerRadius={120}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    label={({ name, percent }) => `${((percent || 0) * 100).toFixed(0)}%`}
-                                    labelLine={true}
-                                >
-                                    {stats.status.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={stats.colors[index % stats.colors.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontWeight: 'bold', padding: '12px' }} />
-                                <Legend iconType="circle" wrapperStyle={{ fontWeight: 'bold', fontSize: '12px' }} />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </ChartCard>
+                                <div className="flex items-start justify-between mb-8 relative z-10">
+                                    <div className="flex items-center gap-5">
+                                        <div className="bg-primary/10 p-5 rounded-[1.5rem] group-hover:bg-primary group-hover:text-white transition-colors duration-500">
+                                            <Building2 className="h-10 w-10" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h4 className="text-2xl font-black text-zinc-900 uppercase italic tracking-tighter group-hover:text-primary transition-colors">
+                                                {dep.nombre}
+                                            </h4>
+                                            <p className="text-[10px] font-black text-zinc-400 tracking-[0.2em] uppercase italic opacity-70">
+                                                ID: {dep.codigo} • Control Operativo
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Badge variant="primary" className="bg-primary/10 text-primary font-black text-[10px] px-3 py-1 rounded-full border-none">
+                                        {depPQRs.length} TOTAL
+                                    </Badge>
+                                </div>
 
-                    <ChartCard title="Carga por Dependencia" description="Volumen de solicitudes asignadas">
-                        <ResponsiveContainer width="100%" height={320}>
-                            <BarChart data={stats.dep} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
-                                <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" fontSize={10} width={140} fontWeight="bold" tick={{ fill: '#52525b' }} />
-                                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontWeight: 'bold', padding: '12px' }} />
-                                <Bar dataKey="value" fill="url(#depGradient)" radius={[0, 10, 10, 0]} barSize={24}>
-                                    <LabelList dataKey="value" position="right" style={{ fill: '#52525b', fontSize: '12px', fontWeight: 'bold' }} offset={10} />
-                                </Bar>
-                                <defs>
-                                    <linearGradient id="depGradient" x1="0" y1="0" x2="1" y2="0">
-                                        <stop offset="0%" stopColor="#2563eb" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.9} />
-                                    </linearGradient>
-                                </defs>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </ChartCard>
+                                <div className="grid grid-cols-3 gap-6 relative z-10 pt-6 border-t border-zinc-50">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center">Por Asignar</p>
+                                        <p className="text-3xl font-black text-amber-500 text-center italic tracking-tighter">{pending}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center">Gestión</p>
+                                        <p className="text-3xl font-black text-blue-600 text-center italic tracking-tighter">{inProcess}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center">Éxito</p>
+                                        <p className="text-3xl font-black text-emerald-500 text-center italic tracking-tighter">{resolved}</p>
+                                    </div>
+                                </div>
 
-                    <ChartCard title="Eficiencia de Resolución" description="% de solicitudes cerradas por cada área">
-                        <ResponsiveContainer width="100%" height={320}>
-                            <BarChart data={stats.depEfficiency} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
-                                <XAxis type="number" domain={[0, 100]} hide />
-                                <YAxis dataKey="name" type="category" fontSize={10} width={140} fontWeight="bold" tick={{ fill: '#52525b' }} />
-                                <Tooltip
-                                    formatter={(value) => [`${value}%`, 'Eficiencia']}
-                                    contentStyle={{ borderRadius: '16px', border: 'none', fontWeight: 'bold', padding: '12px' }}
-                                />
-                                <Bar dataKey="value" fill="url(#effGradient)" radius={[0, 10, 10, 0]} barSize={24}>
-                                    <LabelList dataKey="value" position="right" formatter={(v: any) => `${v}%`} style={{ fill: '#059669', fontSize: '12px', fontWeight: 'bold' }} offset={10} />
-                                </Bar>
-                                <defs>
-                                    <linearGradient id="effGradient" x1="0" y1="0" x2="1" y2="0">
-                                        <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                                        <stop offset="100%" stopColor="#34d399" stopOpacity={0.9} />
-                                    </linearGradient>
-                                </defs>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </ChartCard>
+                                <div className="mt-8 flex justify-end">
+                                    <div className="inline-flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-[0.2em] group-hover:translate-x-2 transition-transform">
+                                        Gestionar Área <ChevronRight className="h-4 w-4" />
+                                    </div>
+                                </div>
+                            </button>
+                        );
+                    })}
                 </div>
+            ) : (
+                <>
+                    {/* KPI Summary Rows (Drives Charts) */}
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <StatCard
+                            title="Solicitudes Totales"
+                            value={baseFilteredPQRs.length}
+                            icon={<Search className="h-5 w-5" />}
+                            color="primary"
+                            active={filterKpi === 'all'}
+                            onClick={() => toggleKpiFilter('all')}
+                        />
+                        <StatCard
+                            title="Críticas / Vencidas"
+                            value={baseFilteredPQRs.filter(p => isPast(parseISO(p.fechaVencimiento)) && p.estado !== 'RESUELTA').length}
+                            icon={<AlertCircle className="h-5 w-5" />}
+                            color="destructive"
+                            active={filterKpi === 'critical'}
+                            onClick={() => toggleKpiFilter('critical')}
+                        />
+                        <StatCard
+                            title="Próximas a Vencer"
+                            value={baseFilteredPQRs.filter(p => {
+                                const diasRestantes = differenceInDays(parseISO(p.fechaVencimiento), new Date());
+                                return diasRestantes <= 2 && diasRestantes >= 0 && p.estado !== 'RESUELTA';
+                            }).length}
+                            icon={<Clock className="h-5 w-5" />}
+                            color="warning"
+                            active={filterKpi === 'soon'}
+                            onClick={() => toggleKpiFilter('soon')}
+                        />
+                        <StatCard
+                            title="Gestión Exitosa"
+                            value={baseFilteredPQRs.filter(p => p.estado === 'RESUELTA' || p.estado === 'CERRADA').length}
+                            icon={<CheckCircle2 className="h-5 w-5" />}
+                            color="success"
+                            active={filterKpi === 'resolved'}
+                            onClick={() => toggleKpiFilter('resolved')}
+                        />
+                    </div>
+
+                    {stats && (
+                        <div className="grid gap-8 grid-cols-1 lg:grid-cols-2 animate-in slide-in-from-bottom-4 duration-500 pt-4">
+                            <ChartCard title="Distribución por Comuna" description="Incidencias registradas por sector geográfico">
+                                <ResponsiveContainer width="100%" height={320}>
+                                    <BarChart data={stats.comuna}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                        <XAxis dataKey="name" fontSize={11} fontWeight="bold" tick={{ fill: '#52525b' }} angle={-15} textAnchor="end" height={60} />
+                                        <YAxis fontSize={11} fontWeight="bold" tick={{ fill: '#52525b' }} />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px', fontWeight: 'bold' }}
+                                            cursor={{ fill: 'rgba(37, 99, 235, 0.05)' }}
+                                        />
+                                        <Bar dataKey="value" fill="url(#barGradient)" radius={[10, 10, 0, 0]}>
+                                            <LabelList dataKey="value" position="top" style={{ fill: '#3b82f6', fontSize: '14px', fontWeight: '900', fontFamily: 'Inter' }} offset={10} />
+                                        </Bar>
+                                        <defs>
+                                            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#2563eb" stopOpacity={1} />
+                                                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.1} />
+                                            </linearGradient>
+                                        </defs>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </ChartCard>
+
+                            <ChartCard title="Estado Global" description="Porcentaje de solicitudes por fase actual">
+                                <ResponsiveContainer width="100%" height={320}>
+                                    <PieChart>
+                                        <Pie
+                                            data={stats.status}
+                                            cx="50%" cy="50%"
+                                            innerRadius={70} outerRadius={120}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            label={({ name, percent }) => `${((percent || 0) * 100).toFixed(0)}%`}
+                                            labelLine={true}
+                                        >
+                                            {stats.status.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={stats.colors[index % stats.colors.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontWeight: 'bold', padding: '12px' }} />
+                                        <Legend iconType="circle" wrapperStyle={{ fontWeight: 'bold', fontSize: '12px' }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </ChartCard>
+
+                            <ChartCard title="Carga por Dependencia" description="Volumen de solicitudes asignadas">
+                                <ResponsiveContainer width="100%" height={320}>
+                                    <BarChart data={stats.dep} layout="vertical">
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" fontSize={10} width={140} fontWeight="bold" tick={{ fill: '#52525b' }} />
+                                        <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', fontWeight: 'bold', padding: '12px' }} />
+                                        <Bar dataKey="value" fill="url(#depGradient)" radius={[0, 10, 10, 0]} barSize={24}>
+                                            <LabelList dataKey="value" position="right" style={{ fill: '#52525b', fontSize: '12px', fontWeight: 'bold' }} offset={10} />
+                                        </Bar>
+                                        <defs>
+                                            <linearGradient id="depGradient" x1="0" y1="0" x2="1" y2="0">
+                                                <stop offset="0%" stopColor="#2563eb" stopOpacity={1} />
+                                                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.9} />
+                                            </linearGradient>
+                                        </defs>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </ChartCard>
+
+                            <ChartCard title="Eficiencia de Resolución" description="% de solicitudes cerradas por cada área">
+                                <ResponsiveContainer width="100%" height={320}>
+                                    <BarChart data={stats.depEfficiency} layout="vertical">
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                                        <XAxis type="number" domain={[0, 100]} hide />
+                                        <YAxis dataKey="name" type="category" fontSize={10} width={140} fontWeight="bold" tick={{ fill: '#52525b' }} />
+                                        <Tooltip
+                                            formatter={(value) => [`${value}%`, 'Eficiencia']}
+                                            contentStyle={{ borderRadius: '16px', border: 'none', fontWeight: 'bold', padding: '12px' }}
+                                        />
+                                        <Bar dataKey="value" fill="url(#effGradient)" radius={[0, 10, 10, 0]} barSize={24}>
+                                            <LabelList dataKey="value" position="right" formatter={(v: any) => `${v}%`} style={{ fill: '#059669', fontSize: '12px', fontWeight: 'bold' }} offset={10} />
+                                        </Bar>
+                                        <defs>
+                                            <linearGradient id="effGradient" x1="0" y1="0" x2="1" y2="0">
+                                                <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                                                <stop offset="100%" stopColor="#34d399" stopOpacity={0.9} />
+                                            </linearGradient>
+                                        </defs>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </ChartCard>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );
@@ -402,15 +470,17 @@ export default function Dashboard() {
 
 function ChartCard({ title, description, children, className }: { title: string, description: string, children: React.ReactNode, className?: string }) {
     return (
-        <div className={`bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col gap-8 ${className}`}>
-            <div className="space-y-2 border-l-4 border-l-primary pl-6">
-                <h3 className="text-xl font-black text-zinc-900 uppercase italic flex items-center gap-2">
-                    <PieIcon className="h-5 w-5 text-primary not-italic" />
+        <div className={`bg-white border-2 border-zinc-100 rounded-[2.5rem] p-12 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-500 flex flex-col gap-10 relative overflow-hidden group ${className}`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-bl-[5rem] -mr-8 -mt-8 transition-transform group-hover:scale-110" />
+
+            <div className="space-y-3 relative z-10 border-l-4 border-blue-600 pl-8">
+                <h3 className="text-2xl font-black text-zinc-900 uppercase italic flex items-center gap-3 tracking-tighter">
+                    <PieIcon className="h-6 w-6 text-blue-600 not-italic" />
                     {title}
                 </h3>
-                <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{description}</p>
+                <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em]">{description}</p>
             </div>
-            <div className="flex-1 min-h-[300px] flex items-center justify-center">
+            <div className="flex-1 min-h-[300px] flex items-center justify-center relative z-10">
                 {children}
             </div>
         </div>

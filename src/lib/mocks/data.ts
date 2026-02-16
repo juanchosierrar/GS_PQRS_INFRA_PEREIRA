@@ -17,7 +17,12 @@ export const TIPOS_TRAMITE: TipoTramite[] = [
 
 export const USUARIOS: Usuario[] = [
     { id: 'usr-1', nombre: 'Juan Administrador', email: 'admin@infrapqr.com', rol: 'ADMIN_GENERAL', cargo: 'Administrador de Sistema' },
-    { id: 'usr-2', nombre: 'Ing. Carlos Diseño', email: 'carlos.obras@pereira.gov.co', rol: 'DIRECTOR_DEPENDENCIA', dependenciaId: 'dep-2', cargo: 'Director de Obras' },
+
+    // Directores de Dependencia
+    { id: 'usr-18', nombre: 'Sandra Lopez', email: 'sandra.lopez@pereira.gov.co', rol: 'DIRECTOR_DEPENDENCIA', dependenciaId: 'dep-1', cargo: 'Coordinadora Responsable', whatsapp: '3201234567' },
+    { id: 'usr-2', nombre: 'Ing. Carlos Diseño', email: 'carlos.obras@pereira.gov.co', rol: 'DIRECTOR_DEPENDENCIA', dependenciaId: 'dep-2', cargo: 'Director de Obras', whatsapp: '3202345678' },
+    { id: 'usr-19', nombre: 'Natalia Ramirez', email: 'natalia.ramirez@pereira.gov.co', rol: 'DIRECTOR_DEPENDENCIA', dependenciaId: 'dep-3', cargo: 'Gestor de Talleres', whatsapp: '3203456789' },
+    { id: 'usr-20', nombre: 'Gladys', email: 'gladys@pereira.gov.co', rol: 'DIRECTOR_DEPENDENCIA', dependenciaId: 'dep-4', cargo: 'Gestor Secretaría Privada', whatsapp: '3204567890' },
 
     // Parques (dep-1)
     { id: 'usr-3', nombre: 'Téc. Pedro Parques', email: 'pedro.parques@pereira.gov.co', telefono: '3101234567', rol: 'TECNICO', dependenciaId: 'dep-1', cargo: 'Técnico Senior' },

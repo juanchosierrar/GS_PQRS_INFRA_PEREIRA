@@ -17,6 +17,9 @@ export default function DependenciaPage() {
     const codigo = params.codigo as string;
     const [selectedTecnico, setSelectedTecnico] = useState<string>('');
     const [assigningPqrId, setAssigningPqrId] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [activeFilter, setActiveFilter] = useState<'pending' | 'inProgress' | 'resolved' | 'technicians' | null>(null);
+    const itemsPerPage = 5;
     const queryClient = useQueryClient();
 
     const dependencia = DEPENDENCIAS.find(d => d.codigo === codigo);
@@ -72,6 +75,39 @@ export default function DependenciaPage() {
         p.dependenciaId === dependencia.id &&
         (p.estado === 'RESUELTA' || p.estado === 'CERRADA')
     ) || [];
+
+    // Pagination for pending list
+    const totalPages = Math.ceil(pqrsAsignados.length / itemsPerPage);
+    const paginatedPQRs = pqrsAsignados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    // Filter logic based on active filter
+    const getFilteredPQRs = () => {
+        if (!activeFilter) return paginatedPQRs;
+
+        switch (activeFilter) {
+            case 'pending':
+                return pqrsAsignados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+            case 'inProgress':
+                return pqrsEnProceso;
+            case 'resolved':
+                return pqrsResueltos;
+            case 'technicians':
+                // Show all PQRs assigned to technicians in this dependency
+                return allPqrs?.filter(p =>
+                    p.dependenciaId === dependencia.id && p.asignadoA
+                ) || [];
+            default:
+                return paginatedPQRs;
+        }
+    };
+
+    const filteredPQRs = getFilteredPQRs();
+
+    const handleFilterToggle = (filter: 'pending' | 'inProgress' | 'resolved' | 'technicians') => {
+        setActiveFilter(activeFilter === filter ? null : filter);
+        setCurrentPage(1); // Reset to first page when filter changes
+    };
+
     const tecnicos = allUsers.filter(u => u.dependenciaId === dependencia.id && u.rol === 'TECNICO');
 
     const getSemaforo = (fechaVencimiento: string, estado: string) => {
@@ -123,22 +159,66 @@ export default function DependenciaPage() {
 
             {/* Stats Cards */}
             <div className="grid gap-6 md:grid-cols-4">
-                <div className="bg-white border-2 border-zinc-100 border-l-4 border-l-amber-500 rounded-[2rem] p-6 shadow-sm">
+                <button
+                    onClick={() => handleFilterToggle('pending')}
+                    className={cn(
+                        "bg-white border-2 border-l-4 border-l-amber-500 rounded-[2rem] p-6 shadow-sm transition-all text-left",
+                        activeFilter === 'pending'
+                            ? "border-amber-500 shadow-xl scale-105 bg-amber-50"
+                            : "border-zinc-100 hover:shadow-lg hover:scale-[1.02]"
+                    )}
+                >
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">Por Asignar</p>
                     <p className="text-5xl font-black text-zinc-900 italic tracking-tighter">{pqrsAsignados.length}</p>
-                </div>
-                <div className="bg-white border-2 border-zinc-100 border-l-4 border-l-blue-500 rounded-[2rem] p-6 shadow-sm">
+                    {activeFilter === 'pending' && (
+                        <p className="text-[9px] font-black text-amber-600 uppercase tracking-wider mt-2">✓ Filtro Activo</p>
+                    )}
+                </button>
+                <button
+                    onClick={() => handleFilterToggle('inProgress')}
+                    className={cn(
+                        "bg-white border-2 border-l-4 border-l-blue-500 rounded-[2rem] p-6 shadow-sm transition-all text-left",
+                        activeFilter === 'inProgress'
+                            ? "border-blue-500 shadow-xl scale-105 bg-blue-50"
+                            : "border-zinc-100 hover:shadow-lg hover:scale-[1.02]"
+                    )}
+                >
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">En Proceso</p>
                     <p className="text-5xl font-black text-zinc-900 italic tracking-tighter">{pqrsEnProceso.length}</p>
-                </div>
-                <div className="bg-white border-2 border-zinc-100 border-l-4 border-l-emerald-500 rounded-[2rem] p-6 shadow-sm">
+                    {activeFilter === 'inProgress' && (
+                        <p className="text-[9px] font-black text-blue-600 uppercase tracking-wider mt-2">✓ Filtro Activo</p>
+                    )}
+                </button>
+                <button
+                    onClick={() => handleFilterToggle('resolved')}
+                    className={cn(
+                        "bg-white border-2 border-l-4 border-l-emerald-500 rounded-[2rem] p-6 shadow-sm transition-all text-left",
+                        activeFilter === 'resolved'
+                            ? "border-emerald-500 shadow-xl scale-105 bg-emerald-50"
+                            : "border-zinc-100 hover:shadow-lg hover:scale-[1.02]"
+                    )}
+                >
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">Resueltos</p>
                     <p className="text-5xl font-black text-zinc-900 italic tracking-tighter">{pqrsResueltos.length}</p>
-                </div>
-                <div className="bg-white border-2 border-zinc-100 border-l-4 border-l-purple-500 rounded-[2rem] p-6 shadow-sm">
+                    {activeFilter === 'resolved' && (
+                        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-wider mt-2">✓ Filtro Activo</p>
+                    )}
+                </button>
+                <button
+                    onClick={() => handleFilterToggle('technicians')}
+                    className={cn(
+                        "bg-white border-2 border-l-4 border-l-purple-500 rounded-[2rem] p-6 shadow-sm transition-all text-left",
+                        activeFilter === 'technicians'
+                            ? "border-purple-500 shadow-xl scale-105 bg-purple-50"
+                            : "border-zinc-100 hover:shadow-lg hover:scale-[1.02]"
+                    )}
+                >
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-2">Técnicos</p>
                     <p className="text-5xl font-black text-zinc-900 italic tracking-tighter">{tecnicos.length}</p>
-                </div>
+                    {activeFilter === 'technicians' && (
+                        <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider mt-2">✓ Filtro Activo</p>
+                    )}
+                </button>
             </div>
 
             {/* Equipo Técnico Stats Section */}
@@ -189,24 +269,43 @@ export default function DependenciaPage() {
                 </div>
             </div>
 
-            {/* PQRs Por Asignar */}
+            {/* PQRs List - Dynamic based on filter */}
             <div className="space-y-4">
-                <h3 className="text-2xl font-black text-zinc-900 uppercase italic flex items-center gap-2">
-                    <AlertCircle className="h-6 w-6 text-amber-500" />
-                    Radicados Pendientes de Asignación
-                </h3>
+                <div className="flex items-center justify-between">
+                    <h3 className="text-2xl font-black text-zinc-900 uppercase italic flex items-center gap-2">
+                        {activeFilter === 'inProgress' && <Clock className="h-6 w-6 text-blue-500" />}
+                        {activeFilter === 'resolved' && <CheckCircle className="h-6 w-6 text-emerald-500" />}
+                        {activeFilter === 'technicians' && <UserCircle className="h-6 w-6 text-purple-500" />}
+                        {(!activeFilter || activeFilter === 'pending') && <AlertCircle className="h-6 w-6 text-amber-500" />}
 
-                {pqrsAsignados.length === 0 ? (
+                        {activeFilter === 'inProgress' && 'Radicados En Proceso'}
+                        {activeFilter === 'resolved' && 'Radicados Resueltos'}
+                        {activeFilter === 'technicians' && 'Radicados Asignados a Técnicos'}
+                        {(!activeFilter || activeFilter === 'pending') && 'Radicados Pendientes de Asignación'}
+                    </h3>
+                    {activeFilter && (
+                        <button
+                            onClick={() => setActiveFilter(null)}
+                            className="text-xs font-black text-zinc-400 hover:text-zinc-600 uppercase tracking-widest border-b-2 border-zinc-200 hover:border-zinc-400 transition-colors"
+                        >
+                            Limpiar Filtro
+                        </button>
+                    )}
+                </div>
+
+                {filteredPQRs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-4 bg-gradient-to-br from-white to-zinc-50 rounded-3xl border-2 border-dashed border-zinc-200">
                         <CheckCircle className="h-12 w-12 text-emerald-500" />
                         <p className="text-lg font-bold text-zinc-400 uppercase tracking-wider">Sin Radicados Pendientes</p>
                     </div>
                 ) : (
                     <div className="grid gap-6">
-                        {pqrsAsignados.map((pqr) => {
+                        {filteredPQRs.map((pqr) => {
                             const semaforo = getSemaforo(pqr.fechaVencimiento, pqr.estado);
                             return (
                                 <div key={pqr.id} className="bg-white border-2 border-zinc-100 rounded-[2.5rem] p-10 shadow-sm hover:shadow-xl transition-all">
+                                    {/* ... Card Content (unchanged) ... */}
+                                    {/* ... previous content starts here ... */}
                                     <div className="flex flex-col lg:flex-row gap-10">
                                         <button
                                             onClick={() => router.push(`/admin/pqr/${pqr.id}`)}
@@ -315,6 +414,40 @@ export default function DependenciaPage() {
                                 </div>
                             );
                         })}
+
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center items-center gap-4 pt-6">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-6 py-2 rounded-xl border-2 border-zinc-100 font-black text-[10px] uppercase hover:bg-zinc-50 disabled:opacity-30 transition-all"
+                                >
+                                    Anterior
+                                </button>
+                                <div className="flex gap-2">
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setCurrentPage(i + 1)}
+                                            className={cn(
+                                                "w-8 h-8 rounded-lg font-black text-xs transition-all",
+                                                currentPage === i + 1 ? "bg-primary text-white" : "text-zinc-400 hover:bg-zinc-50"
+                                            )}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-6 py-2 rounded-xl border-2 border-zinc-100 font-black text-[10px] uppercase hover:bg-zinc-50 disabled:opacity-30 transition-all"
+                                >
+                                    Siguiente
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

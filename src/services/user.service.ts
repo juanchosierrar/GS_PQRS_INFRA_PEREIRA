@@ -40,6 +40,39 @@ export class UserService {
 
         const updatedUsers = [...users, newUser];
         this.saveUsersToStorage(updatedUsers);
+        await new Promise(resolve => setTimeout(resolve, 300));
         return newUser;
+    }
+
+    static async update(userId: string, data: Partial<Usuario>): Promise<Usuario> {
+        const users = this.getUsersFromStorage();
+        const userIndex = users.findIndex(u => u.id === userId);
+
+        if (userIndex === -1) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        const updatedUser = { ...users[userIndex], ...data };
+        const updatedUsers = [
+            ...users.slice(0, userIndex),
+            updatedUser,
+            ...users.slice(userIndex + 1)
+        ];
+
+        this.saveUsersToStorage(updatedUsers);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return updatedUser;
+    }
+
+    static async delete(userId: string): Promise<void> {
+        const users = this.getUsersFromStorage();
+        const updatedUsers = users.filter(u => u.id !== userId);
+
+        if (users.length === updatedUsers.length) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        this.saveUsersToStorage(updatedUsers);
+        await new Promise(resolve => setTimeout(resolve, 300));
     }
 }
