@@ -13,7 +13,7 @@ interface TopbarProps {
 export default function Topbar({ onNewPQR, onToggleSidebar }: TopbarProps) {
     const pathname = usePathname();
     const { user } = useAuthStore();
-    const canCreatePQR = user?.rol === 'ADMIN_GENERAL' || user?.rol === 'DIRECTOR_DEPENDENCIA';
+    const canCreatePQR = user?.rol === 'ADMIN_GENERAL';
     const isInboxView = pathname === '/admin/inbox';
 
     return (
