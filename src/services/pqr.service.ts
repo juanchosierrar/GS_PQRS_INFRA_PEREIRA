@@ -51,6 +51,7 @@ export class PQRService {
             tipoDocumento?: string;
             numeroDocumento?: string;
             sujeto?: string;
+            autorizaNotificaciones?: boolean;
         };
         estado?: PQRStatus;
         fechaVencimiento?: string;
@@ -141,8 +142,15 @@ export class PQRService {
         // Notificar al técnico
         const users = await UserService.getAll();
         const tecnico = users.find(u => u.id === tecnicoId);
+
         if (tecnico) {
-            NotificationService.notifyTechnicianAssignment(tecnico, updatedPqr);
+            const { emailSent, whatsappSent } = await NotificationService.notifyTechnicianAssignment(tecnico, updatedPqr);
+            updatedPqr.notificadoEmail = emailSent;
+            updatedPqr.notificadoWhatsapp = whatsappSent;
+
+            // Re-save with notification status
+            pqrs[index] = updatedPqr;
+            this.savePQRsToStorage(pqrs);
         }
 
         return updatedPqr;
@@ -172,8 +180,15 @@ export class PQRService {
         if (tecnicoId) {
             const users = await UserService.getAll();
             const tecnico = users.find(u => u.id === tecnicoId);
+
             if (tecnico) {
-                NotificationService.notifyTechnicianAssignment(tecnico, updatedPqr);
+                const { emailSent, whatsappSent } = await NotificationService.notifyTechnicianAssignment(tecnico, updatedPqr);
+                updatedPqr.notificadoEmail = emailSent;
+                updatedPqr.notificadoWhatsapp = whatsappSent;
+
+                // Re-save with notification status
+                pqrs[index] = updatedPqr;
+                this.savePQRsToStorage(pqrs);
             }
         }
 

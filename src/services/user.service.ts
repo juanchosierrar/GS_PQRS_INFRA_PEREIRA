@@ -68,11 +68,10 @@ export class UserService {
         const users = this.getUsersFromStorage();
         const updatedUsers = users.filter(u => u.id !== userId);
 
-        if (users.length === updatedUsers.length) {
-            throw new Error('Usuario no encontrado');
+        if (users.length !== updatedUsers.length) {
+            this.saveUsersToStorage(updatedUsers);
         }
 
-        this.saveUsersToStorage(updatedUsers);
         await new Promise(resolve => setTimeout(resolve, 300));
     }
 }

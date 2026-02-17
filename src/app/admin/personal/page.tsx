@@ -84,7 +84,9 @@ function PersonnelManagementContent() {
                 ? users.filter(t => t.dependenciaId === selectedDepId && t.rol === 'TECNICO')
                 : tecnicos;
         } else {
-            return coordinadores; // Coordinadores are usually shown at a global directory level or filtered similarly
+            return selectedDepId
+                ? users.filter(c => c.dependenciaId === selectedDepId && c.rol === 'DIRECTOR_DEPENDENCIA')
+                : coordinadores;
         }
     }, [activeTab, selectedDepId, users, tecnicos, coordinadores]);
 
@@ -94,6 +96,11 @@ function PersonnelManagementContent() {
             loadUsers();
             setDeletingUser(null);
             queryClient.invalidateQueries({ queryKey: ['users'] });
+        },
+        onError: (error) => {
+            console.error('Error removing user:', error);
+            alert('No se pudo eliminar el usuario. Intente recargar la página.');
+            setDeletingUser(null);
         }
     });
 
@@ -198,68 +205,74 @@ function PersonnelManagementContent() {
                 </button>
             </div>
 
-            {/* Conditional Views */}
-            {activeTab === 'tecnicos' ? (
-                <div className="grid lg:grid-cols-4 gap-8">
-                    {/* Left Sidebar - Dependencies */}
-                    <div className="space-y-4">
-                        <h3 className="text-xs font-black text-zinc-400 uppercase tracking-[0.2em] px-4 flex items-center gap-2">
-                            <Building2 className="h-3 w-3" />
-                            Filtrar Áreas
-                        </h3>
-                        <div className="grid gap-2">
-                            {DEPENDENCIAS.map(dep => {
-                                if (user?.rol === 'DIRECTOR_DEPENDENCIA' && dep.id !== user.dependenciaId) return null;
-                                const isActive = selectedDepId === dep.id;
-                                const count = tecnicos.filter(t => t.dependenciaId === dep.id).length;
-                                return (
-                                    <button
-                                        key={dep.id}
-                                        onClick={() => setSelectedDepId(isActive ? null : dep.id)}
-                                        className={cn(
-                                            "w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all group text-left",
-                                            isActive
-                                                ? "bg-primary border-primary text-white shadow-lg shadow-primary/20"
-                                                : "bg-white border-zinc-100 text-zinc-600 hover:border-primary/50"
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-3 font-black text-[10px] uppercase italic tracking-tighter">
-                                            <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center font-black", isActive ? "bg-white/20" : "bg-zinc-50 group-hover:bg-primary/10")}>
-                                                {dep.codigo}
-                                            </div>
-                                            {dep.nombre}
-                                        </div>
-                                        <div className={cn("text-[9px] font-black px-2 py-0.5 rounded-md", isActive ? "bg-white/20" : "bg-zinc-50")}>
-                                            {count}
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+            {/* Content with Sidebar Layout */}
+            <div className="grid lg:grid-cols-4 gap-8">
+                {/* Left Sidebar - Dependencies Filter (Shared) */}
+                <div className="space-y-4">
+                    <h3 className="text-xs font-black text-zinc-400 uppercase tracking-[0.2em] px-4 flex items-center gap-2">
+                        <Building2 className="h-3 w-3" />
+                        Filtrar Áreas
+                    </h3>
+                    <div className="grid gap-2">
+                        {DEPENDENCIAS.map(dep => {
+                            if (user?.rol === 'DIRECTOR_DEPENDENCIA' && dep.id !== user.dependenciaId) return null;
+                            const isActive = selectedDepId === dep.id;
+                            // Count depends on active tab
+                            const count = activeTab === 'tecnicos'
+                                ? tecnicos.filter(t => t.dependenciaId === dep.id).length
+                                : coordinadores.filter(c => c.dependenciaId === dep.id).length;
 
-                    {/* Technicians List Area */}
-                    <div className="lg:col-span-3 space-y-6">
-                        {activeDependency && (
-                            <div className="bg-zinc-50 border border-zinc-100 rounded-3xl px-6 py-4 flex items-center justify-between mb-4 animate-in slide-in-from-top duration-300">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-8 w-8 bg-primary/10 rounded-xl flex items-center justify-center">
-                                        <Building2 className="h-4 w-4 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Filtrando por:</p>
-                                        <p className="text-sm font-black text-zinc-900 uppercase italic">{activeDependency.nombre}</p>
-                                    </div>
-                                </div>
+                            return (
                                 <button
-                                    onClick={() => setSelectedDepId(null)}
-                                    className="text-[10px] font-black text-zinc-400 hover:text-zinc-600 uppercase tracking-widest border-b border-zinc-200 transition-colors"
+                                    key={dep.id}
+                                    onClick={() => setSelectedDepId(isActive ? null : dep.id)}
+                                    className={cn(
+                                        "w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all group text-left",
+                                        isActive
+                                            ? "bg-primary border-primary text-white shadow-lg shadow-primary/20"
+                                            : "bg-white border-zinc-100 text-zinc-600 hover:border-primary/50"
+                                    )}
                                 >
-                                    Limpiar Filtro
+                                    <div className="flex items-center gap-3 font-black text-[10px] uppercase italic tracking-tighter">
+                                        <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center font-black", isActive ? "bg-white/20" : "bg-zinc-50 group-hover:bg-primary/10")}>
+                                            {dep.codigo}
+                                        </div>
+                                        {dep.nombre}
+                                    </div>
+                                    <div className={cn("text-[9px] font-black px-2 py-0.5 rounded-md", isActive ? "bg-white/20" : "bg-zinc-50")}>
+                                        {count}
+                                    </div>
                                 </button>
-                            </div>
-                        )}
+                            );
+                        })}
+                    </div>
+                </div>
 
+                {/* Main Content Column */}
+                <div className="lg:col-span-3 space-y-6">
+                    {/* Active Filter Banner */}
+                    {activeDependency && (
+                        <div className="bg-zinc-50 border border-zinc-100 rounded-3xl px-6 py-4 flex items-center justify-between mb-4 animate-in slide-in-from-top duration-300">
+                            <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 bg-primary/10 rounded-xl flex items-center justify-center">
+                                    <Building2 className="h-4 w-4 text-primary" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Filtrando por:</p>
+                                    <p className="text-sm font-black text-zinc-900 uppercase italic">{activeDependency.nombre}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setSelectedDepId(null)}
+                                className="text-[10px] font-black text-zinc-400 hover:text-zinc-600 uppercase tracking-widest border-b border-zinc-200 transition-colors"
+                            >
+                                Limpiar Filtro
+                            </button>
+                        </div>
+                    )}
+
+                    {activeTab === 'tecnicos' ? (
+                        /* Technicians List */
                         <div className="grid md:grid-cols-2 gap-6">
                             {filteredPersonnel.length > 0 ? (
                                 filteredPersonnel.map(tec => {
@@ -328,129 +341,96 @@ function PersonnelManagementContent() {
                                 </div>
                             )}
                         </div>
-                    </div>
-                </div>
-            ) : (
-                /* Coordinators View */
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-right duration-500">
-                    {DEPENDENCIAS.map(dep => {
-                        const coord = coordinadores.find(c => c.dependenciaId === dep.id);
+                    ) : (
+                        /* Coordinators List */
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-right duration-500">
+                            {filteredPersonnel.length > 0 ? (
+                                filteredPersonnel.map(coord => {
+                                    const dep = DEPENDENCIAS.find(d => d.id === coord.dependenciaId);
+                                    if (!dep) return null;
 
-                        return (
-                            <div
-                                key={dep.id}
-                                className={cn(
-                                    "p-8 rounded-[2rem] border-2 transition-all group relative overflow-hidden",
-                                    coord
-                                        ? "bg-white border-zinc-100 hover:border-amber-500/30 hover:shadow-xl"
-                                        : "bg-zinc-50 border-dashed border-zinc-200 opacity-60"
-                                )}
-                            >
-                                <div className="relative z-10 space-y-6">
-                                    <div className="flex justify-between items-start">
-                                        <div className="space-y-1">
-                                            <div className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[8px] font-black tracking-widest uppercase mb-2 w-fit">
-                                                {dep.codigo}
-                                            </div>
-                                            <h4 className="font-black text-zinc-900 group-hover:text-amber-600 transition-colors uppercase italic tracking-tighter leading-tight">
-                                                {dep.nombre}
-                                            </h4>
-                                        </div>
-                                        {coord && (
-                                            <div className="h-12 w-12 rounded-2xl bg-zinc-50 flex items-center justify-center font-black text-amber-600 border border-zinc-100">
-                                                {coord.nombre.substring(0, 2).toUpperCase()}
-                                            </div>
-                                        )}
-                                    </div>
+                                    return (
+                                        <div
+                                            key={dep.id}
+                                            className="p-8 rounded-[2rem] border-2 bg-white border-zinc-100 hover:border-amber-500/30 hover:shadow-xl transition-all group relative overflow-hidden"
+                                        >
+                                            <div className="relative z-10 space-y-6">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="h-14 w-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 transition-colors group-hover:bg-amber-500 group-hover:text-white">
+                                                        <ShieldCheck className="h-7 w-7" />
+                                                    </div>
+                                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={(e) => handleEdit(coord, e)}
+                                                            className="p-2 hover:bg-zinc-100 rounded-lg text-zinc-400 hover:text-blue-600 transition-colors"
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => handleDelete(coord, e)}
+                                                            className="p-2 hover:bg-zinc-100 rounded-lg text-zinc-400 hover:text-rose-600 transition-colors"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
 
-                                    {coord ? (
-                                        <div className="space-y-4 pt-4 border-t border-zinc-50">
-                                            <div className="flex justify-between items-start">
                                                 <div className="space-y-1">
-                                                    <p className="text-sm font-black text-zinc-800 tracking-tight">{coord.nombre}</p>
-                                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{coord.cargo}</p>
+                                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{dep.nombre}</p>
+                                                    <h3 className="text-lg font-black text-zinc-900 leading-tight uppercase italic">{coord.nombre}</h3>
+                                                    <p className="text-xs font-medium text-zinc-500">{coord.email}</p>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleEdit(coord, e);
-                                                        }}
-                                                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors group/edit"
-                                                        title="Editar"
-                                                    >
-                                                        <Edit className="h-4 w-4 text-zinc-400 group-hover/edit:text-blue-600" />
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDelete(coord, e);
-                                                        }}
-                                                        className="p-2 hover:bg-rose-50 rounded-lg transition-colors group/delete"
-                                                        title="Eliminar"
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-zinc-400 group-hover/delete:text-rose-600" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-3 pt-2 text-zinc-500">
-                                                <div className="flex items-center gap-1">
-                                                    <Activity className="h-3 w-3" />
-                                                    <span className="text-[9px] font-black uppercase">Gestión Activa</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="pt-10 text-center">
-                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Sin Coordinador</p>
-                                            <button
-                                                onClick={() => {
-                                                    setActiveTab('coordinadores');
-                                                    setShowModal(true);
-                                                }}
-                                                className="mt-4 text-[9px] font-black text-amber-600 border-b-2 border-amber-600/20 hover:border-amber-600 uppercase tracking-[0.2em] transition-all"
-                                            >
-                                                Asignar
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
 
-                                {coord && (
-                                    <div className="absolute -bottom-4 -right-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                                        <ShieldCheck className="h-24 w-24 text-amber-900" />
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                                <div className="pt-6 border-t border-zinc-50 flex items-center justify-between">
+                                                    <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-wider">
+                                                        Activo
+                                                    </span>
+                                                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest">
+                                                        {dep.codigo}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="col-span-full py-12 text-center bg-zinc-50 rounded-3xl border-2 border-dashed border-zinc-200">
+                                    <p className="text-zinc-400 font-bold text-sm">No se encontraron coordinadores en esta área.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
 
             {/* Personnel Modal */}
-            {showModal && (
-                <PersonnelModal
-                    lockedRole={activeTab === 'tecnicos' ? 'TECNICO' : 'DIRECTOR_DEPENDENCIA'}
-                    onClose={handleModalClose}
-                    onSuccess={handleModalSuccess}
-                    currentUser={user}
-                    editUser={editingUser}
-                />
-            )}
+            {
+                showModal && (
+                    <PersonnelModal
+                        lockedRole={activeTab === 'tecnicos' ? 'TECNICO' : 'DIRECTOR_DEPENDENCIA'}
+                        onClose={handleModalClose}
+                        onSuccess={handleModalSuccess}
+                        currentUser={user}
+                        editUser={editingUser}
+                    />
+                )
+            }
 
             {/* Delete Confirmation Modal */}
-            {deletingUser && (
-                <DeleteConfirmModal
-                    isOpen={!!deletingUser}
-                    onClose={() => setDeletingUser(null)}
-                    onConfirm={confirmDelete}
-                    userName={deletingUser.nombre}
-                    userRole={deletingUser.rol === 'TECNICO' ? 'Técnico' : 'Coordinador'}
-                    hasActivePQRs={allPqrs?.some(p => p.asignadoA === deletingUser.id && !['RESUELTA', 'CERRADA'].includes(p.estado))}
-                    isDeleting={deleteMutation.isPending}
-                />
-            )}
-        </div>
+            {
+                deletingUser && (
+                    <DeleteConfirmModal
+                        isOpen={!!deletingUser}
+                        onClose={() => setDeletingUser(null)}
+                        onConfirm={confirmDelete}
+                        userName={deletingUser.nombre}
+                        userRole={deletingUser.rol === 'TECNICO' ? 'Técnico' : 'Coordinador'}
+                        hasActivePQRs={allPqrs?.some(p => p.asignadoA === deletingUser.id && !['RESUELTA', 'CERRADA'].includes(p.estado))}
+                        isDeleting={deleteMutation.isPending}
+                    />
+                )
+            }
+        </div >
     );
 }
 

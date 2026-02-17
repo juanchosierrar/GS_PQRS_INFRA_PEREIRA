@@ -7,7 +7,8 @@ import { format } from 'date-fns';
 import { PQRService } from '@/services/pqr.service';
 import { UserService } from '@/services/user.service';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { cn } from '@/lib/utils';
+import { cn, addBusinessDays } from '@/lib/utils';
+import { useEffect } from 'react';
 
 interface CreatePQRModalProps {
     isOpen: boolean;
@@ -104,6 +105,31 @@ export default function CreatePQRModal({ isOpen, onClose }: CreatePQRModalProps)
     });
 
     const [archivosAdjuntos, setArchivosAdjuntos] = useState<File[]>([]);
+
+    // Effect to recalculate expiration date based on business days and rules
+    useEffect(() => {
+        let days = 15; // Default: Petición de Interés General/Particular
+
+        // Priority 1: Congresistas (5-10 days, using 5 for safety)
+        if (['Senador / Representante', 'Concejal', 'Diputado'].includes(formData.sujeto)) {
+            days = 5;
+        }
+        // Priority 2: Documentos (10 days)
+        else if (formData.claseJuridica === 'Solicitud de documentos o copias') {
+            days = 10;
+        }
+        // Priority 3: Consultas (30 days)
+        else if (formData.claseJuridica === 'Consultas (Conceptos jurídicos/técnicos)') {
+            days = 30;
+        }
+        // Additional: Petición entre Autoridades (10 days)
+        else if (['Entidad de Control', 'Defensoría del Pueblo'].includes(formData.sujeto)) {
+            days = 10;
+        }
+
+        const newDate = addBusinessDays(new Date(), days);
+        setFormData(prev => ({ ...prev, fechaVencimiento: format(newDate, 'yyyy-MM-dd') }));
+    }, [formData.sujeto, formData.claseJuridica]);
 
     const createPQRMutation = useMutation({
         mutationFn: async (data: typeof formData) => {
@@ -383,7 +409,6 @@ export default function CreatePQRModal({ isOpen, onClose }: CreatePQRModalProps)
                                     value={formData.email}
                                     onChange={(e) => handleChange('email', e.target.value)}
                                     placeholder="correo@ejemplo.com"
-                                    className="w-full px-4 py-3 rounded-xl border-2 border-zinc-200 focus:border-emerald-500 focus:outline-none font-semibold"
                                 />
                             </div>
 

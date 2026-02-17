@@ -8,7 +8,7 @@ import { DEPENDENCIAS, USUARIOS, COMUNAS } from '@/lib/mocks/data';
 import { Badge } from '@/components/ui/Badge';
 import {
     Inbox, Building2, Loader2, UserCircle, AlertCircle,
-    CheckCircle2, Search, Filter, MapPin, ArrowRight, User, LayoutDashboard, Clock
+    CheckCircle2, Search, Filter, MapPin, ArrowRight, User, LayoutDashboard, Clock, Mail, MessageCircle
 } from 'lucide-react';
 import { format, parseISO, isPast, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -288,17 +288,17 @@ function InboxContent() {
             {/* Table Section */}
             <div className="bg-white rounded-[2.5rem] border-2 border-zinc-100 shadow-2xl overflow-hidden relative">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
                             <tr className="bg-zinc-50 border-b-2 border-zinc-100">
-                                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Radicado</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Solicitud / Ciudadano</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Comuna</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Estado</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Dependencia</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Plazo</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Técnico</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 text-right">Acciones</th>
+                                <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 whitespace-nowrap">Radicado</th>
+                                <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Solicitud / Ciudadano</th>
+                                <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 whitespace-nowrap">Comuna</th>
+                                <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 whitespace-nowrap">Estado</th>
+                                <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Dependencia</th>
+                                <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 whitespace-nowrap">Plazo</th>
+                                <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 min-w-[200px]">Técnico</th>
+                                <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y-2 divide-zinc-50">
@@ -313,7 +313,7 @@ function InboxContent() {
 
                                     return (
                                         <tr key={pqr.id} className="group hover:bg-zinc-50/50 transition-all">
-                                            <td className="p-6">
+                                            <td className="p-4 whitespace-nowrap">
                                                 <div className="space-y-1">
                                                     <button
                                                         onClick={() => router.push(`/admin/pqr/${pqr.id}`)}
@@ -326,22 +326,22 @@ function InboxContent() {
                                                     </p>
                                                 </div>
                                             </td>
-                                            <td className="p-6">
-                                                <div className="space-y-1">
-                                                    <h3 className="font-black text-zinc-800 leading-tight">{pqr.titulo}</h3>
-                                                    <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500">
-                                                        <UserCircle className="h-3 w-3 text-zinc-400" />
+                                            <td className="p-4">
+                                                <div className="space-y-1 max-w-[250px]">
+                                                    <h3 className="font-black text-zinc-800 leading-tight line-clamp-2" title={pqr.titulo}>{pqr.titulo}</h3>
+                                                    <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 whitespace-nowrap overflow-hidden text-ellipsis">
+                                                        <UserCircle className="h-3 w-3 text-zinc-400 flex-shrink-0" />
                                                         {pqr.ciudadano.nombre}
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="p-6">
+                                            <td className="p-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-2 text-sm font-bold text-zinc-600">
                                                     <MapPin className="h-4 w-4 text-primary" />
                                                     {pqr.ubicacion.comuna || <span className="text-zinc-300 italic">No esp...</span>}
                                                 </div>
                                             </td>
-                                            <td className="p-6">
+                                            <td className="p-4 whitespace-nowrap">
                                                 <Badge
                                                     variant={!pqr.dependenciaId ? 'destructive' : !pqr.asignadoA ? 'warning' : 'default'}
                                                     className="font-black text-[9px] tracking-widest px-3 py-1"
@@ -349,13 +349,15 @@ function InboxContent() {
                                                     {!pqr.dependenciaId ? 'NUEVA' : !pqr.asignadoA ? 'ESPERANDO TÉCNICO' : pqr.estado}
                                                 </Badge>
                                             </td>
-                                            <td className="p-6">
+                                            <td className="p-4">
                                                 <div className="flex items-center gap-2 text-sm font-bold text-zinc-600">
-                                                    <Building2 className="h-4 w-4 text-zinc-300" />
-                                                    {dep?.nombre || <span className="text-zinc-400 italic font-medium">PENDIENTE ASIGNACIÓN</span>}
+                                                    <Building2 className="h-4 w-4 text-zinc-300 flex-shrink-0" />
+                                                    <span className="line-clamp-1" title={dep?.nombre}>
+                                                        {dep?.nombre || <span className="text-zinc-400 italic font-medium">PENDIENTE ASIGNACIÓN</span>}
+                                                    </span>
                                                 </div>
                                             </td>
-                                            <td className="p-6">
+                                            <td className="p-4 whitespace-nowrap">
                                                 {(() => {
                                                     const vencimiento = parseISO(pqr.fechaVencimiento);
                                                     const daysLeft = differenceInDays(vencimiento, new Date());
@@ -379,13 +381,43 @@ function InboxContent() {
                                                     );
                                                 })()}
                                             </td>
-                                            <td className="p-6">
-                                                <div className="flex items-center gap-2 text-sm font-bold text-zinc-600">
-                                                    <User className="h-4 w-4 text-zinc-300" />
-                                                    {tecnico?.nombre || <span className="text-zinc-300 italic">Pendiente...</span>}
+                                            <td className="p-4">
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-2 text-sm font-bold text-zinc-600">
+                                                        <User className={cn("h-4 w-4", tecnico ? "text-purple-500" : "text-zinc-300")} />
+                                                        {tecnico ? (
+                                                            <span className="text-purple-900">{tecnico.nombre}</span>
+                                                        ) : (
+                                                            <span className="text-zinc-300 italic">Pendiente...</span>
+                                                        )}
+                                                    </div>
+                                                    {tecnico && (
+                                                        <div className="flex items-center gap-3 pl-6">
+                                                            <div
+                                                                title={pqr.notificadoEmail ? "Email Enviado" : "Email Pendiente"}
+                                                                className={cn(
+                                                                    "flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border transition-all",
+                                                                    pqr.notificadoEmail ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-zinc-50 text-zinc-300 border-zinc-100"
+                                                                )}
+                                                            >
+                                                                <Mail className="h-3 w-3" />
+                                                                {pqr.notificadoEmail && <span>Email</span>}
+                                                            </div>
+                                                            <div
+                                                                title={pqr.notificadoWhatsapp ? "WhatsApp Enviado" : "WhatsApp Pendiente"}
+                                                                className={cn(
+                                                                    "flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border transition-all",
+                                                                    pqr.notificadoWhatsapp ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-zinc-50 text-zinc-300 border-zinc-100"
+                                                                )}
+                                                            >
+                                                                <MessageCircle className="h-3 w-3" />
+                                                                {pqr.notificadoWhatsapp && <span>Chat</span>}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
-                                            <td className="p-6">
+                                            <td className="p-4">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {canAssign && (
                                                         <button
@@ -394,9 +426,9 @@ function InboxContent() {
                                                                 setSelectedComuna(pqr.ubicacion.comuna || '');
                                                                 setSelectedDependencia(pqr.dependenciaId || '');
                                                             }}
-                                                            className="px-3 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20"
+                                                            className="px-3 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 whitespace-nowrap"
                                                         >
-                                                            {pqr.asignadoA ? 'Cambiar Técnico' : 'Asignar'}
+                                                            {pqr.asignadoA ? 'Reasignar' : 'Asignar'}
                                                         </button>
                                                     )}
                                                     <button
@@ -412,7 +444,7 @@ function InboxContent() {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="p-20 text-center">
+                                    <td colSpan={8} className="p-20 text-center">
                                         <div className="flex flex-col items-center gap-4 text-zinc-300">
                                             <AlertCircle className="h-16 w-16 opacity-20" />
                                             <p className="text-xl font-black uppercase tracking-widest italic opacity-40">No se encontraron registros</p>

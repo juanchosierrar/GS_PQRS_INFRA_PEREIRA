@@ -293,7 +293,7 @@ function DashboardContent() {
                                             </p>
                                         </div>
                                     </div>
-                                    <Badge variant="primary" className="bg-primary/10 text-primary font-black text-[10px] px-3 py-1 rounded-full border-none">
+                                    <Badge variant="default" className="bg-primary/10 text-primary font-black text-[10px] px-3 py-1 rounded-full border-none">
                                         {depPQRs.length} TOTAL
                                     </Badge>
                                 </div>

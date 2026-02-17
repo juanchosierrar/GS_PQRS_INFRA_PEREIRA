@@ -69,6 +69,8 @@ export interface PQR {
         sujeto?: SujetoSolicitante;
     };
     asignadoA?: string; // ID del Técnico
+    notificadoEmail?: boolean;
+    notificadoWhatsapp?: boolean;
     fotos?: string[];
     respuesta?: string;
     fechaCierre?: string;
