@@ -2,7 +2,8 @@ name: Deploy PQRS Pereira
 
 on:
   push:
-    branches: [principal] # Actualización: Tu rama se llama 'main' según la verificación de git
+    branches:
+      - principal # Actualización: Tu rama se llama 'main' según la verificación de git
 
 jobs:
   build-and-deploy:
