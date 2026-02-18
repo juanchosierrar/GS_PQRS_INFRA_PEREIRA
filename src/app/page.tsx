@@ -72,7 +72,7 @@ export default function WelcomePage() {
                     Acceso seguro respaldado por Alcaldía de Pereira
                 </div>
                 <div className="text-[10px] text-muted-foreground/50 font-mono">
-                    v1.0.1-deploy-check
+                    v1.0.2-deploy-check
                 </div>
             </div>
         </div>
