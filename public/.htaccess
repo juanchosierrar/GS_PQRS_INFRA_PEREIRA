@@ -1,6 +1,7 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /pqrs/
+  DirectoryIndex index.html
   
   # Ensure all requests have a trailing slash (to match Next.js trailingSlash: true)
   RewriteCond %{REQUEST_FILENAME} !-f

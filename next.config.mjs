@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-// Trigger deployment after secrets setup
+// Force re-deployment trigger for verification
 const nextConfig = {
     reactStrictMode: true,
     output: 'export',
