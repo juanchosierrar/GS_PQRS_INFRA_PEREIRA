@@ -8,7 +8,7 @@ import { DEPENDENCIAS, USUARIOS, COMUNAS } from '@/lib/mocks/data';
 import { Badge } from '@/components/ui/Badge';
 import {
     Inbox, Building2, Loader2, UserCircle, AlertCircle,
-    CheckCircle2, Search, Filter, MapPin, ArrowRight, User, LayoutDashboard, Clock, Mail, MessageCircle
+    CheckCircle2, Search, Filter, MapPin, ArrowRight, User, LayoutDashboard, Clock, Mail, MessageCircle, Download
 } from 'lucide-react';
 import { format, parseISO, isPast, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -139,6 +139,48 @@ function InboxContent() {
         });
     };
 
+    const handleExportCSV = () => {
+        if (!filteredPQRs.length) return;
+
+        // Define columns
+        const headers = ["Radicado", "Fecha Creacion", "Titulo", "Ciudadano", "Celular", "Estado", "Dependencia", "Comuna", "Tecnico Asignado"];
+
+        // Map data to rows
+        const rows = filteredPQRs.map(pqr => {
+            const dep = DEPENDENCIAS.find(d => d.id === pqr.dependenciaId)?.nombre || 'N/A';
+            const tec = allUsers.find(u => u.id === pqr.asignadoA)?.nombre || 'Sin asignar';
+
+            return [
+                pqr.radicado,
+                format(parseISO(pqr.fechaCreacion), 'dd/MM/yyyy'),
+                `"${pqr.titulo.replace(/"/g, '""')}"`, // Escape quotes
+                `"${pqr.ciudadano.nombre.replace(/"/g, '""')}"`,
+                pqr.ciudadano.telefono,
+                pqr.estado,
+                `"${dep}"`,
+                `"${pqr.ubicacion.comuna || 'N/A'}"`,
+                `"${tec}"`
+            ];
+        });
+
+        // Join with CSV format
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+
+        // Create blob and download
+        const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Reporte_PQRS_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -159,6 +201,13 @@ function InboxContent() {
                     </h2>
                     <p className="text-muted-foreground font-semibold text-xs tracking-[0.1em] uppercase opacity-70">Administración operativa y flujo de trabajo de radicados</p>
                 </div>
+                <button
+                    onClick={handleExportCSV}
+                    className="flex items-center gap-3 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20 hover:-translate-y-1 active:scale-95"
+                >
+                    <Download className="h-4 w-4" />
+                    Descargar CSV
+                </button>
             </div>
 
             {/* KPI Section */}
