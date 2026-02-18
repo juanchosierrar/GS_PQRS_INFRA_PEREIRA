@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { PQRService } from '@/services/pqr.service';
 import { DEPENDENCIAS } from '@/lib/mocks/data';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Badge } from '@/components/ui/Badge';
 import { format, differenceInDays, parseISO, isPast } from 'date-fns';
 import {
@@ -22,11 +23,14 @@ import StatCard from '@/components/StatCard';
 function DashboardContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { user } = useAuthStore();
     const tabParam = searchParams.get('tab') as 'solicitudes' | 'estadisticas' | 'dependencias' | null;
 
     const [activeTab, setActiveTab] = useState<'solicitudes' | 'estadisticas' | 'dependencias'>(tabParam || 'solicitudes');
     const [filterComuna, setFilterComuna] = useState<string>('');
-    const [filterDependencia, setFilterDependencia] = useState<string>('');
+    const [filterDependencia, setFilterDependencia] = useState<string>(
+        user?.rol === 'DIRECTOR_DEPENDENCIA' ? user.dependenciaId || '' : ''
+    );
     const [filterEstado, setFilterEstado] = useState<string>('');
     const [filterKpi, setFilterKpi] = useState<'all' | 'critical' | 'soon' | 'resolved' | null>(null);
 
@@ -215,8 +219,9 @@ function DashboardContent() {
                             </label>
                             <select
                                 value={filterDependencia}
+                                disabled={user?.rol === 'DIRECTOR_DEPENDENCIA'}
                                 onChange={(e) => setFilterDependencia(e.target.value)}
-                                className="w-full px-6 py-4 rounded-2xl border-2 border-zinc-100 focus:border-blue-600 focus:outline-none font-black text-xs uppercase tracking-widest bg-zinc-50/50 transition-all hover:bg-white"
+                                className="w-full px-6 py-4 rounded-2xl border-2 border-zinc-100 focus:border-blue-600 focus:outline-none font-black text-xs uppercase tracking-widest bg-zinc-50/50 transition-all hover:bg-white disabled:opacity-70 disabled:grayscale-[0.5]"
                             >
                                 <option value="">Todas las Dependencias</option>
                                 {DEPENDENCIAS.map((dep) => (
@@ -249,7 +254,7 @@ function DashboardContent() {
                         <button
                             onClick={() => {
                                 setFilterComuna('');
-                                setFilterDependencia('');
+                                setFilterDependencia(user?.rol === 'DIRECTOR_DEPENDENCIA' ? user.dependenciaId || '' : '');
                                 setFilterEstado('');
                                 setFilterKpi(null);
                             }}

@@ -191,18 +191,20 @@ function PersonnelManagementContent() {
                     <Briefcase className="h-4 w-4" />
                     Personal Técnico
                 </button>
-                <button
-                    onClick={() => setActiveTab('coordinadores')}
-                    className={cn(
-                        "px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2",
-                        activeTab === 'coordinadores'
-                            ? "bg-white text-zinc-900 shadow-sm"
-                            : "text-zinc-500 hover:text-zinc-700"
-                    )}
-                >
-                    <ShieldCheck className="h-4 w-4" />
-                    Coordinadores
-                </button>
+                {user?.rol === 'ADMIN_GENERAL' && (
+                    <button
+                        onClick={() => setActiveTab('coordinadores')}
+                        className={cn(
+                            "px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2",
+                            activeTab === 'coordinadores'
+                                ? "bg-white text-zinc-900 shadow-sm"
+                                : "text-zinc-500 hover:text-zinc-700"
+                        )}
+                    >
+                        <ShieldCheck className="h-4 w-4" />
+                        Coordinadores
+                    </button>
+                )}
             </div>
 
             {/* Content with Sidebar Layout */}
@@ -251,7 +253,7 @@ function PersonnelManagementContent() {
                 {/* Main Content Column */}
                 <div className="lg:col-span-3 space-y-6">
                     {/* Active Filter Banner */}
-                    {activeDependency && (
+                    {activeDependency && user?.rol === 'ADMIN_GENERAL' && (
                         <div className="bg-zinc-50 border border-zinc-100 rounded-3xl px-6 py-4 flex items-center justify-between mb-4 animate-in slide-in-from-top duration-300">
                             <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 bg-primary/10 rounded-xl flex items-center justify-center">
