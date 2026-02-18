@@ -8,7 +8,8 @@ node_modules/
 
 # next.js
 /.next/
-/out/
+# /out/  <-- Commented out to allow committing build artifacts for deployment
+
 
 # production
 /build

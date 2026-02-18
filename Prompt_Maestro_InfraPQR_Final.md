@@ -110,3 +110,5 @@ Para que la app sea funcional inmediatamente, genera un script SQL de **Seed Dat
 7. Desarrolla el **Formulario de Campo** (Vista Técnico) con lógica de GPS.
 
 ¡Empieza generando el código SQL para la base de datos\!
+
+Conecta los cambios realizados con GItHub del proyecto y que se actualice igualmente en hostinger
