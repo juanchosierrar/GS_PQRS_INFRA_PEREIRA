@@ -15,6 +15,8 @@ import { cn } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import StatCard from '@/components/StatCard';
 import { useAuthStore } from '@/store/useAuthStore';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const COORDINADORES_MAP: Record<string, string> = {
     'dep-1': 'usr-3', // Téc. Pedro Parques
@@ -181,6 +183,85 @@ function InboxContent() {
         document.body.removeChild(link);
     };
 
+    const handleExportPDF = () => {
+        if (!filteredPQRs.length) return;
+
+        const doc = new jsPDF();
+        const dateStr = format(new Date(), 'dd/MM/yyyy HH:mm');
+
+        // Header
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('SECRETARÍA DE INFRAESTRUCTURA', 105, 20, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text('Alcaldía de Pereira - Reporte de Gestión PQRS', 105, 28, { align: 'center' });
+
+        // Info & Filters
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Fecha de generación: ${dateStr}`, 14, 40);
+
+        let filterText = 'Filtros aplicados: ';
+        if (filterDependencia) {
+            const depName = DEPENDENCIAS.find(d => d.id === filterDependencia)?.nombre;
+            filterText += `Dependencia: ${depName} | `;
+        }
+        if (filterComuna) filterText += `Comuna: ${filterComuna} | `;
+        if (filterEstado) filterText += `Estado: ${filterEstado} | `;
+        if (searchTerm) filterText += `Búsqueda: "${searchTerm}" | `;
+        if (!filterDependencia && !filterComuna && !filterEstado && !searchTerm) filterText += 'Ninguno';
+
+        doc.text(filterText.endsWith(' | ') ? filterText.slice(0, -3) : filterText, 14, 46);
+
+        // Stats Summary
+        const criticalCount = baseFilteredPQRs.filter(p => isPast(parseISO(p.fechaVencimiento)) && p.estado !== 'RESUELTA').length;
+        const soonCount = baseFilteredPQRs.filter(p => {
+            const dias = differenceInDays(parseISO(p.fechaVencimiento), new Date());
+            return dias <= 2 && dias >= 0 && p.estado !== 'RESUELTA';
+        }).length;
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Resumen de Gestión:', 14, 56);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Total Radicados: ${filteredPQRs.length}`, 14, 62);
+        doc.text(`Críticas/Vencidas: ${criticalCount}`, 70, 62);
+        doc.text(`Próximas a vencer: ${soonCount}`, 130, 62);
+
+        // Table
+        (doc as any).autoTable({
+            startY: 70,
+            head: [['Radicado', 'Fecha', 'Título', 'Ciudadano', 'Estado', 'Dependencia']],
+            body: filteredPQRs.map(pqr => [
+                pqr.radicado,
+                format(parseISO(pqr.fechaCreacion), 'dd/MM/yy'),
+                pqr.titulo,
+                pqr.ciudadano.nombre,
+                pqr.estado,
+                DEPENDENCIAS.find(d => d.id === pqr.dependenciaId)?.nombre || 'N/A'
+            ]),
+            styles: { fontSize: 8, cellPadding: 2 },
+            headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+            alternateRowStyles: { fillColor: [245, 247, 250] },
+            margin: { top: 70 },
+        });
+
+        // Footer
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(
+                `Página ${i} de ${pageCount} - Generado por el Sistema InfraPQR`,
+                105,
+                290,
+                { align: 'center' }
+            );
+        }
+
+        doc.save(`Reporte_Gestion_PQRS_${format(new Date(), 'yyyyMMdd_HHmm')}.pdf`);
+    };
+
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -201,13 +282,22 @@ function InboxContent() {
                     </h2>
                     <p className="text-muted-foreground font-semibold text-xs tracking-[0.1em] uppercase opacity-70">Administración operativa y flujo de trabajo de radicados</p>
                 </div>
-                <button
-                    onClick={handleExportCSV}
-                    className="flex items-center gap-3 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20 hover:-translate-y-1 active:scale-95"
-                >
-                    <Download className="h-4 w-4" />
-                    Descargar CSV
-                </button>
+                <div className="flex flex-wrap gap-4">
+                    <button
+                        onClick={handleExportCSV}
+                        className="flex items-center gap-3 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20 hover:-translate-y-1 active:scale-95"
+                    >
+                        <Download className="h-4 w-4" />
+                        CSV
+                    </button>
+                    <button
+                        onClick={handleExportPDF}
+                        className="flex items-center gap-3 px-6 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-rose-600/20 hover:-translate-y-1 active:scale-95"
+                    >
+                        <Download className="h-4 w-4" />
+                        Generar Informe PDF
+                    </button>
+                </div>
             </div>
 
             {/* KPI Section */}
