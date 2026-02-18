@@ -1,0 +1,35 @@
+name: Deploy PQRS Pereira
+
+on:
+  push:
+    branches:
+      - main # Actualización: Tu rama se llama 'main' según la verificación de git
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Obtener código
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 3. Instalar y Compilar
+        run: |
+          npm install
+          npm run build
+
+      - name: 4. Subir a Hostinger vía FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./out/
+          server-dir: ./public_html/pqrs/
+          protocol: ftp
+          port: 21
