@@ -23,6 +23,7 @@ jobs:
         run: |
           npm ci
           npm run build
+          ls -R ./out
 
       - name: 4. Subir a Hostinger vía FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -30,7 +31,8 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./out/
-          server-dir: ./public_html/pqrs/
+          local-dir: out/
+          server-dir: public_html/pqrs/
+          state-name: .ftp-deploy-sync-state.json
           protocol: ftp
           port: 21
