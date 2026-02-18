@@ -66,9 +66,14 @@ export default function WelcomePage() {
                 </Link>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-muted-foreground pt-8 border-t w-full max-w-sm justify-center">
-                <ShieldCheck className="h-4 w-4" />
-                Acceso seguro respaldado por Alcaldía de Pereira
+            <div className="flex flex-col items-center gap-2 pt-8 border-t w-full max-w-sm justify-center">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <ShieldCheck className="h-4 w-4" />
+                    Acceso seguro respaldado por Alcaldía de Pereira
+                </div>
+                <div className="text-[10px] text-muted-foreground/50 font-mono">
+                    v1.0.1-deploy-check
+                </div>
             </div>
         </div>
     );
