@@ -293,31 +293,11 @@ function DashboardContent() {
                     </h2>
                     <p className="text-zinc-500 font-black text-[10px] tracking-[0.2em] uppercase opacity-70">
                         {activeTab === 'estadisticas'
-                            ? 'ANÁLISIS DE IMPACTO Y EFICIENCIA OPERATIVA MUNICIPAL - v1.3.1'
-                            : 'CONTROL DE RADICADOS CRÍTICOS Y GESTIÓN INMEDIATA - v1.3.1'}
-                        {typeof window !== 'undefined' && !window.location.pathname.includes('/pqrs/') && (
-                            <span className="ml-4 text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                                ⚠️ RUTA INCORRECTA (USAR /pqrs/)
-                            </span>
-                        )}
+                            ? 'ANÁLISIS DE IMPACTO Y EFICIENCIA OPERATIVA MUNICIPAL'
+                            : 'CONTROL DE RADICADOS CRÍTICOS Y GESTIÓN INMEDIATA'}
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-4">
-                    {user?.rol === 'ADMIN_GENERAL' && (
-                        <button
-                            onClick={() => {
-                                // This assumes a way to trigger the global modal via a window event or simple state
-                                // Since we don't have a global context for the modal here, we'll suggest a consistent UI
-                                // but the Topbar button is the primary one. For Dashboard, we add it for double accessibility.
-                                const event = new CustomEvent('open-new-pqr-modal');
-                                window.dispatchEvent(event);
-                            }}
-                            className="flex items-center gap-3 px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 hover:-translate-y-1 active:scale-95"
-                        >
-                            <Plus className="h-4 w-4" />
-                            Nuevo Radicado
-                        </button>
-                    )}
                     <button
                         onClick={handleExportCSV}
                         className="flex items-center gap-3 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20 hover:-translate-y-1 active:scale-95"
