@@ -339,6 +339,13 @@ function InboxContent() {
                         </button>
                     )}
                     <button
+                        onClick={handleExportCSV}
+                        className="flex items-center gap-3 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20 hover:-translate-y-1 active:scale-95"
+                    >
+                        <Download className="h-4 w-4" />
+                        CSV
+                    </button>
+                    <button
                         onClick={handleExportPDF}
                         className="flex items-center gap-3 px-6 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-rose-600/20 hover:-translate-y-1 active:scale-95"
                     >
