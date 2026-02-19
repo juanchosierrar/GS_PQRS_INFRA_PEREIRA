@@ -3,7 +3,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
 import CreatePQRModal from '@/components/CreatePQRModal';
@@ -17,6 +17,13 @@ export default function RootLayout({
 }>) {
     const [isPqrModalOpen, setIsPqrModalOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Effect to allow opening the modal via custom event
+    useEffect(() => {
+        const handleOpenModal = () => setIsPqrModalOpen(true);
+        window.addEventListener('open-new-pqr-modal', handleOpenModal);
+        return () => window.removeEventListener('open-new-pqr-modal', handleOpenModal);
+    }, []);
 
     return (
         <html lang="es">

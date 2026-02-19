@@ -48,7 +48,7 @@ export default function Topbar({ onNewPQR, onToggleSidebar }: TopbarProps) {
                     </button>
                 </div>
 
-                {canCreatePQR && isInboxView && (
+                {canCreatePQR && (
                     <button
                         onClick={onNewPQR}
                         className="flex items-center gap-2.5 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-blue-600/20 transition-all hover:scale-[1.05] active:scale-95 flex-shrink-0"
