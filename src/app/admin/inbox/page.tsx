@@ -8,7 +8,7 @@ import { DEPENDENCIAS, USUARIOS, COMUNAS } from '@/lib/mocks/data';
 import { Badge } from '@/components/ui/Badge';
 import {
     Inbox, Building2, Loader2, UserCircle, AlertCircle,
-    CheckCircle2, Search, Filter, MapPin, ArrowRight, User, LayoutDashboard, Clock, Mail, MessageCircle, Download
+    CheckCircle2, Search, Filter, MapPin, ArrowRight, User, LayoutDashboard, Clock, Mail, MessageCircle, Download, Plus
 } from 'lucide-react';
 import { format, parseISO, isPast, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -326,13 +326,18 @@ function InboxContent() {
                     <p className="text-muted-foreground font-semibold text-xs tracking-[0.1em] uppercase opacity-70">Administración operativa y flujo de trabajo de radicados</p>
                 </div>
                 <div className="flex flex-wrap gap-4">
-                    <button
-                        onClick={handleExportCSV}
-                        className="flex items-center gap-3 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20 hover:-translate-y-1 active:scale-95"
-                    >
-                        <Download className="h-4 w-4" />
-                        CSV
-                    </button>
+                    {user?.rol === 'ADMIN_GENERAL' && (
+                        <button
+                            onClick={() => {
+                                const event = new CustomEvent('open-new-pqr-modal');
+                                window.dispatchEvent(event);
+                            }}
+                            className="flex items-center gap-3 px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 hover:-translate-y-1 active:scale-95"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Nuevo Radicado
+                        </button>
+                    )}
                     <button
                         onClick={handleExportPDF}
                         className="flex items-center gap-3 px-6 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-rose-600/20 hover:-translate-y-1 active:scale-95"
