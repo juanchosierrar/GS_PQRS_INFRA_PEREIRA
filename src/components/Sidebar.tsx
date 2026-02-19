@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import {
     LayoutDashboard,
     Inbox,
@@ -60,9 +60,11 @@ interface SidebarProps {
     onClose: () => void;
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+function SidebarContent({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { user } = useAuthStore();
+    const activeTab = searchParams.get('tab');
 
     const isInbox = pathname === '/admin/inbox';
 
@@ -110,7 +112,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             href="/admin"
                             icon={LayoutDashboard}
                             label="Panel Principal"
-                            active={pathname === '/admin'}
+                            active={pathname === '/admin' && (activeTab === 'solicitudes' || !activeTab)}
                         />
                     </div>
 
@@ -167,7 +169,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 href="/admin?tab=estadisticas"
                                 icon={BarChart3}
                                 label="Reportes de Gestión"
-                                active={pathname.includes('tab=estadisticas')}
+                                active={pathname === '/admin' && activeTab === 'estadisticas'}
                             />
                             <NavItem
                                 href="/admin/config"
@@ -185,5 +187,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
             </aside>
         </>
+    );
+}
+
+export default function Sidebar(props: SidebarProps) {
+    return (
+        <React.Suspense fallback={<div className="w-72 bg-[#080c1a] h-screen border-r border-white/5" />}>
+            <SidebarContent {...props} />
+        </React.Suspense>
     );
 }

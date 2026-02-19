@@ -288,11 +288,13 @@ function DashboardContent() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white/40 backdrop-blur-sm p-6 rounded-[2rem] border border-white/50 shadow-sm">
                 <div className="space-y-1.5 border-l-8 border-blue-600 pl-8">
                     <h2 className="text-4xl font-black tracking-tighter text-zinc-900 flex items-center gap-4 uppercase italic">
-                        <BarChart3 className="h-10 w-10 text-blue-600 not-italic" />
-                        Gobierno Inteligente
+                        {activeTab === 'estadisticas' ? <BarChart3 className="h-10 w-10 text-blue-600 not-italic" /> : <LayoutDashboard className="h-10 w-10 text-blue-600 not-italic" />}
+                        {activeTab === 'estadisticas' ? 'Gobierno Inteligente' : 'Resumen Operativo'}
                     </h2>
                     <p className="text-zinc-500 font-black text-[10px] tracking-[0.2em] uppercase opacity-70">
-                        ANÁLISIS DE IMPACTO Y EFICIENCIA OPERATIVA MUNICIPAL
+                        {activeTab === 'estadisticas'
+                            ? 'ANÁLISIS DE IMPACTO Y EFICIENCIA OPERATIVA MUNICIPAL'
+                            : 'CONTROL DE RADICADOS CRÍTICOS Y GESTIÓN INMEDIATA'}
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-4">
@@ -494,7 +496,7 @@ function DashboardContent() {
                         />
                     </div>
 
-                    {stats && (
+                    {activeTab === 'estadisticas' && stats ? (
                         <div className="grid gap-8 grid-cols-1 lg:grid-cols-2 animate-in slide-in-from-bottom-4 duration-500 pt-4">
                             <ChartCard title="Distribución por Comuna" description="Incidencias registradas por sector geográfico">
                                 <ResponsiveContainer width="100%" height={320}>
@@ -583,6 +585,99 @@ function DashboardContent() {
                                     </BarChart>
                                 </ResponsiveContainer>
                             </ChartCard>
+                        </div>
+                    ) : (
+                        <div className="bg-white border-2 border-zinc-100 rounded-[3rem] shadow-xl overflow-hidden relative animate-in slide-in-from-bottom-4 duration-500">
+                            <div className="p-8 border-b-2 border-zinc-50 bg-zinc-50/30 flex justify-between items-center">
+                                <h3 className="text-xl font-black text-zinc-900 uppercase italic flex items-center gap-3 tracking-tighter">
+                                    <AlertCircle className="h-6 w-6 text-rose-600" />
+                                    Prioridades de Atención
+                                </h3>
+                                <Badge variant="destructive" className="font-black text-[10px] px-3 py-1">
+                                    {urgentPQRs.length} CRÍTICOS
+                                </Badge>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-zinc-50">
+                                        <tr className="border-b-2 border-zinc-100">
+                                            <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Radicado</th>
+                                            <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Título / Solicitud</th>
+                                            <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Dependencia</th>
+                                            <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Estado</th>
+                                            <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y-2 divide-zinc-50">
+                                        {urgentPQRs.length > 0 ? (
+                                            urgentPQRs.slice(0, 10).map((pqr) => {
+                                                const semaforo = getSemaforo(pqr.fechaVencimiento, pqr.estado);
+                                                return (
+                                                    <tr key={pqr.id} className="group hover:bg-zinc-50/50 transition-all">
+                                                        <td className="p-6">
+                                                            <span className="text-lg font-black text-primary underline decoration-primary/20 underline-offset-4 leading-none">
+                                                                {pqr.radicado}
+                                                            </span>
+                                                            <p className="text-[10px] font-bold text-zinc-400 uppercase italic mt-1">
+                                                                {format(parseISO(pqr.fechaCreacion), 'dd MMM yyyy')}
+                                                            </p>
+                                                        </td>
+                                                        <td className="p-6">
+                                                            <p className="font-black text-zinc-800 leading-tight line-clamp-2 max-w-sm">
+                                                                {pqr.titulo}
+                                                            </p>
+                                                            <div className="flex items-center gap-2 mt-1 text-[10px] font-bold text-zinc-400">
+                                                                <MapPin className="h-3 w-3" /> {pqr.ubicacion.comuna || 'No especificada'}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-6">
+                                                            <div className="flex items-center gap-2">
+                                                                <Building2 className="h-4 w-4 text-zinc-300" />
+                                                                <span className="text-sm font-bold text-zinc-600">
+                                                                    {DEPENDENCIAS.find(d => d.id === pqr.dependenciaId)?.nombre || 'Pendiente'}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-6">
+                                                            <Badge variant={semaforo.variant} className="font-black text-[9px] tracking-widest px-3 py-1">
+                                                                {semaforo.label}
+                                                            </Badge>
+                                                        </td>
+                                                        <td className="p-6 text-center">
+                                                            <button
+                                                                onClick={() => router.push(`/admin/pqr/${pqr.id}`)}
+                                                                className="px-6 py-3 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-lg hover:shadow-primary/20"
+                                                            >
+                                                                Ver Detalles
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={5} className="p-20 text-center">
+                                                    <div className="flex flex-col items-center gap-4 text-zinc-300">
+                                                        <CheckCircle2 className="h-16 w-16 opacity-20" />
+                                                        <p className="text-xl font-black uppercase tracking-widest italic opacity-40">Sin pendientes críticos</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="p-8 bg-zinc-50/50 border-t-2 border-zinc-50 flex justify-between items-center">
+                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                    Visualizando <span className="text-zinc-900">{Math.min(urgentPQRs.length, 10)}</span> de las solicitudes más urgentes
+                                </p>
+                                <button
+                                    onClick={() => router.push('/admin/inbox')}
+                                    className="flex items-center gap-3 text-xs font-black text-primary uppercase tracking-widest hover:translate-x-2 transition-transform underline underline-offset-8 decoration-2"
+                                >
+                                    Ir a Bandeja Completa <PlusCircle className="h-4 w-4" />
+                                </button>
+                            </div>
                         </div>
                     )}
                 </>
