@@ -1,18 +1,11 @@
-# Disable directory listing
+# Minimal .htaccess for troubleshooting
 Options -Indexes
-
-# Set the default index file
 DirectoryIndex index.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /pqrs/
-  
-  # If the request is for a real file or directory, serve it directly
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
-  RewriteRule ^ - [L]
-  
-  # Otherwise, serve index.html for Next.js routing
-  RewriteRule ^ index.html [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . index.html [L]
 </IfModule>
