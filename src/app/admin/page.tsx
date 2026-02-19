@@ -19,6 +19,9 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import StatCard from '@/components/StatCard';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Download } from 'lucide-react';
 
 function DashboardContent() {
     const searchParams = useSearchParams();
@@ -164,6 +167,113 @@ function DashboardContent() {
         };
     }, [filteredPQRs]);
 
+    const handleExportCSV = () => {
+        if (!filteredPQRs.length) return;
+        const headers = ["Radicado", "Fecha Creacion", "Titulo", "Ciudadano", "Estado", "Dependencia", "Comuna"];
+        const rows = filteredPQRs.map(pqr => {
+            const dep = DEPENDENCIAS.find(d => d.id === pqr.dependenciaId)?.nombre || 'N/A';
+            return [
+                pqr.radicado,
+                format(parseISO(pqr.fechaCreacion), 'dd/MM/yyyy'),
+                `"${pqr.titulo.replace(/"/g, '""')}"`,
+                `"${pqr.ciudadano.nombre.replace(/"/g, '""')}"`,
+                pqr.estado,
+                `"${dep}"`,
+                `"${pqr.ubicacion.comuna || 'N/A'}"`
+            ];
+        });
+        const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Reporte_Estadistico_PQRS_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleExportPDF = () => {
+        if (!filteredPQRs.length) return;
+        const doc = new jsPDF();
+        const dateStr = format(new Date(), 'dd/MM/yyyy HH:mm');
+
+        doc.setFillColor(8, 12, 26);
+        doc.rect(0, 0, 210, 45, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ANÁLISIS DE GESTIÓN PEREIRA', 105, 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('REPORTE EJECUTIVO DE IMPACTO Y EFICIENCIA MUNICIPAL', 105, 30, { align: 'center' });
+
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(14, 50, 182, 40, 3, 3, 'F');
+        doc.setDrawColor(229, 231, 235);
+        doc.roundedRect(14, 50, 182, 40, 3, 3, 'S');
+
+        doc.setTextColor(31, 41, 55);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RESUMEN DE INDICADORES CLAVE (KPI)', 20, 58);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text(`Fecha del Reporte: ${dateStr}`, 20, 65);
+        doc.text(`Total Solicitudes Analizadas: ${filteredPQRs.length}`, 20, 71);
+
+        const critical = filteredPQRs.filter(p => isPast(parseISO(p.fechaVencimiento)) && p.estado !== 'RESUELTA').length;
+        const resolved = filteredPQRs.filter(p => p.estado === 'RESUELTA' || p.estado === 'CERRADA').length;
+        const efficiency = ((resolved / filteredPQRs.length) * 100).toFixed(1);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text(`PQRS Críticas: ${critical}`, 120, 65);
+        doc.text(`Tasa de Resolución: ${efficiency}%`, 120, 71);
+
+        doc.text('Distribución por Comuna:', 20, 100);
+        autoTable(doc, {
+            startY: 105,
+            head: [['Comuna / Sector', 'No. Radicados']],
+            body: (stats?.comuna.map(c => [c.name, c.value]) || []) as any[][],
+            theme: 'striped',
+            headStyles: { fillColor: [37, 99, 235] },
+            margin: { left: 14, right: 110 }
+        });
+
+        doc.text('Estado de Solicitudes:', 115, 100);
+        autoTable(doc, {
+            startY: 105,
+            head: [['Estado Actual', 'Cantidad']],
+            body: (stats?.status.map(s => [s.name, s.value]) || []) as any[][],
+            theme: 'striped',
+            headStyles: { fillColor: [16, 185, 129] },
+            margin: { left: 114 }
+        });
+
+        autoTable(doc, {
+            startY: (doc as any).lastAutoTable.finalY + 15,
+            head: [['Dependencia / Cartera', 'Solicitudes', 'Eficiencia %']],
+            body: (stats?.dep.map((d) => [
+                d.name,
+                d.value,
+                `${stats.depEfficiency.find(e => e.name === d.name)?.value || 0}%`
+            ]) || []) as any[][],
+            headStyles: { fillColor: [8, 12, 26] },
+        });
+
+        const pageCount = (doc.internal as any).getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Informe de Gestión - Secretaría de Infraestructura - Pereira - Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+        }
+
+        doc.save(`Reporte_Dashboard_PQRS_${format(new Date(), 'yyyyMMdd_HHmm')}.pdf`);
+    };
+
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -184,6 +294,22 @@ function DashboardContent() {
                     <p className="text-zinc-500 font-black text-[10px] tracking-[0.2em] uppercase opacity-70">
                         ANÁLISIS DE IMPACTO Y EFICIENCIA OPERATIVA MUNICIPAL
                     </p>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                    <button
+                        onClick={handleExportCSV}
+                        className="flex items-center gap-3 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20 hover:-translate-y-1 active:scale-95"
+                    >
+                        <Download className="h-4 w-4" />
+                        CSV
+                    </button>
+                    <button
+                        onClick={handleExportPDF}
+                        className="flex items-center gap-3 px-6 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-rose-600/20 hover:-translate-y-1 active:scale-95"
+                    >
+                        <Download className="h-4 w-4" />
+                        Generar Informe PDF
+                    </button>
                 </div>
             </div>
 

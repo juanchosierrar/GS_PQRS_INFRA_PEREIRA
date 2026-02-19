@@ -189,70 +189,113 @@ function InboxContent() {
         const doc = new jsPDF();
         const dateStr = format(new Date(), 'dd/MM/yyyy HH:mm');
 
+        // Decoración Superior (Franja Azul)
+        doc.setFillColor(37, 99, 235);
+        doc.rect(0, 0, 210, 40, 'F');
+
         // Header
-        doc.setFontSize(18);
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
         doc.setFont('helvetica', 'bold');
-        doc.text('SECRETARÍA DE INFRAESTRUCTURA', 105, 20, { align: 'center' });
+        doc.text('SECRETARÍA DE INFRAESTRUCTURA', 105, 18, { align: 'center' });
         doc.setFontSize(12);
-        doc.text('Alcaldía de Pereira - Reporte de Gestión PQRS', 105, 28, { align: 'center' });
-
-        // Info & Filters
-        doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Fecha de generación: ${dateStr}`, 14, 40);
+        doc.text('Alcaldía de Pereira - Panel de Control PQRS', 105, 26, { align: 'center' });
 
-        let filterText = 'Filtros aplicados: ';
-        if (filterDependencia) {
-            const depName = DEPENDENCIAS.find(d => d.id === filterDependencia)?.nombre;
-            filterText += `Dependencia: ${depName} | `;
-        }
-        if (filterComuna) filterText += `Comuna: ${filterComuna} | `;
-        if (filterEstado) filterText += `Estado: ${filterEstado} | `;
-        if (searchTerm) filterText += `Búsqueda: "${searchTerm}" | `;
-        if (!filterDependencia && !filterComuna && !filterEstado && !searchTerm) filterText += 'Ninguno';
+        // Info General (Cuadro Blanco Superior)
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(14, 45, 182, 35, 3, 3, 'F');
+        doc.setDrawColor(229, 231, 235);
+        doc.roundedRect(14, 45, 182, 35, 3, 3, 'S');
 
-        doc.text(filterText.endsWith(' | ') ? filterText.slice(0, -3) : filterText, 14, 46);
+        doc.setTextColor(31, 41, 55);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INFORME TÉCNICO DE GESTIÓN', 20, 52);
 
-        // Stats Summary
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text(`Fecha de Emisión: ${dateStr}`, 20, 58);
+        doc.text(`Usuario: ${user?.nombre || 'Administrador'}`, 20, 63);
+
+        const activeFilters = [];
+        if (filterDependencia) activeFilters.push(`Dep: ${DEPENDENCIAS.find(d => d.id === filterDependencia)?.nombre}`);
+        if (filterComuna) activeFilters.push(`Comuna: ${filterComuna}`);
+        if (filterEstado) activeFilters.push(`Estado: ${filterEstado}`);
+        if (searchTerm) activeFilters.push(`Búsqueda: "${searchTerm}"`);
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Filtros Activos:', 20, 71);
+        doc.setFont('helvetica', 'normal');
+        doc.text(activeFilters.length > 0 ? activeFilters.join(' | ') : 'Todos los registros', 48, 71);
+
+        // Stats Summary Cards (Simuladas)
         const criticalCount = baseFilteredPQRs.filter(p => isPast(parseISO(p.fechaVencimiento)) && p.estado !== 'RESUELTA').length;
         const soonCount = baseFilteredPQRs.filter(p => {
             const dias = differenceInDays(parseISO(p.fechaVencimiento), new Date());
             return dias <= 2 && dias >= 0 && p.estado !== 'RESUELTA';
         }).length;
+        const resolvedCount = baseFilteredPQRs.filter(p => p.estado === 'RESUELTA' || p.estado === 'CERRADA').length;
 
-        doc.setFont('helvetica', 'bold');
-        doc.text('Resumen de Gestión:', 14, 56);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Total Radicados: ${filteredPQRs.length}`, 14, 62);
-        doc.text(`Críticas/Vencidas: ${criticalCount}`, 70, 62);
-        doc.text(`Próximas a vencer: ${soonCount}`, 130, 62);
+        const startYStats = 85;
+        const cardWidth = 42;
+
+        const drawStat = (x: number, title: string, value: string | number, color: [number, number, number]) => {
+            doc.setFillColor(249, 250, 251);
+            doc.roundedRect(x, startYStats, cardWidth, 20, 2, 2, 'F');
+            doc.setDrawColor(color[0], color[1], color[2]);
+            doc.line(x, startYStats + 20, x + cardWidth, startYStats + 20);
+
+            doc.setFontSize(7);
+            doc.setTextColor(107, 114, 128);
+            doc.setFont('helvetica', 'bold');
+            doc.text(title.toUpperCase(), x + 21, startYStats + 7, { align: 'center' });
+
+            doc.setFontSize(11);
+            doc.setTextColor(color[0], color[1], color[2]);
+            doc.text(String(value), x + 21, startYStats + 15, { align: 'center' });
+        };
+
+        drawStat(14, 'Total PQRS', filteredPQRs.length, [37, 99, 235]);
+        drawStat(60, 'Críticas', criticalCount, [220, 38, 38]);
+        drawStat(106, 'Por Vencer', soonCount, [217, 119, 6]);
+        drawStat(152, 'Resueltas', resolvedCount, [5, 150, 105]);
 
         // Table
-        (doc as any).autoTable({
-            startY: 70,
+        autoTable(doc, {
+            startY: 112,
             head: [['Radicado', 'Fecha', 'Título', 'Ciudadano', 'Estado', 'Dependencia']],
             body: filteredPQRs.map(pqr => [
                 pqr.radicado,
                 format(parseISO(pqr.fechaCreacion), 'dd/MM/yy'),
-                pqr.titulo,
+                pqr.titulo.length > 40 ? pqr.titulo.substring(0, 38) + '...' : pqr.titulo,
                 pqr.ciudadano.nombre,
                 pqr.estado,
                 DEPENDENCIAS.find(d => d.id === pqr.dependenciaId)?.nombre || 'N/A'
             ]),
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
-            alternateRowStyles: { fillColor: [245, 247, 250] },
-            margin: { top: 70 },
+            styles: { fontSize: 8, cellPadding: 3, font: 'helvetica' },
+            headStyles: {
+                fillColor: [37, 99, 235],
+                textColor: 255,
+                fontStyle: 'bold',
+                halign: 'center'
+            },
+            columnStyles: {
+                0: { fontStyle: 'bold', textColor: [37, 99, 235] },
+                4: { halign: 'center' }
+            },
+            alternateRowStyles: { fillColor: [249, 250, 251] },
+            margin: { top: 112 },
         });
 
         // Footer
-        const pageCount = (doc as any).internal.getNumberOfPages();
+        const pageCount = (doc.internal as any).getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
-            doc.setTextColor(150);
+            doc.setTextColor(156, 163, 175);
             doc.text(
-                `Página ${i} de ${pageCount} - Generado por el Sistema InfraPQR`,
+                `Página ${i} de ${pageCount} - Sistema de Gestión de Infraestructura Pereira - PQRS`,
                 105,
                 290,
                 { align: 'center' }
