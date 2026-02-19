@@ -293,8 +293,13 @@ function DashboardContent() {
                     </h2>
                     <p className="text-zinc-500 font-black text-[10px] tracking-[0.2em] uppercase opacity-70">
                         {activeTab === 'estadisticas'
-                            ? 'ANÁLISIS DE IMPACTO Y EFICIENCIA OPERATIVA MUNICIPAL'
-                            : 'CONTROL DE RADICADOS CRÍTICOS Y GESTIÓN INMEDIATA'}
+                            ? 'ANÁLISIS DE IMPACTO Y EFICIENCIA OPERATIVA MUNICIPAL - v1.3.1'
+                            : 'CONTROL DE RADICADOS CRÍTICOS Y GESTIÓN INMEDIATA - v1.3.1'}
+                        {typeof window !== 'undefined' && !window.location.pathname.includes('/pqrs/') && (
+                            <span className="ml-4 text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                                ⚠️ RUTA INCORRECTA (USAR /pqrs/)
+                            </span>
+                        )}
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-4">
