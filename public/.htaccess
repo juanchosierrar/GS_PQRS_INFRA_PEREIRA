@@ -1,15 +1,18 @@
+# Disable directory listing
+Options -Indexes
+
+# Set the default index file
+DirectoryIndex index.html
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /pqrs/
-  DirectoryIndex index.html
   
-  # Ensure all requests have a trailing slash (to match Next.js trailingSlash: true)
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_URI} !(.*)/$
-  RewriteRule ^(.*)$ /pqrs/$1/ [L,R=301]
-
-  # Handle the case where the index.html is needed
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /pqrs/index.html [L]
+  # If the request is for a real file or directory, serve it directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  
+  # Otherwise, serve index.html for Next.js routing
+  RewriteRule ^ index.html [L]
 </IfModule>
