@@ -34,6 +34,15 @@ function PersonnelManagementContent() {
     const [selectedDepId, setSelectedDepId] = useState<string | null>(
         user?.rol === 'DIRECTOR_DEPENDENCIA' ? user.dependenciaId || null : initialDep
     );
+
+    // Bloquear dependencia para Directores
+    useEffect(() => {
+        if (user?.rol === 'DIRECTOR_DEPENDENCIA' && user.dependenciaId) {
+            if (selectedDepId !== user.dependenciaId) {
+                setSelectedDepId(user.dependenciaId);
+            }
+        }
+    }, [user, selectedDepId]);
     const [showModal, setShowModal] = useState(false);
     const [editingUser, setEditingUser] = useState<any>(null);
     const [deletingUser, setDeletingUser] = useState<any>(null);
@@ -227,12 +236,16 @@ function PersonnelManagementContent() {
                             return (
                                 <button
                                     key={dep.id}
-                                    onClick={() => setSelectedDepId(isActive ? null : dep.id)}
+                                    onClick={() => {
+                                        if (user?.rol === 'DIRECTOR_DEPENDENCIA') return;
+                                        setSelectedDepId(isActive ? null : dep.id);
+                                    }}
                                     className={cn(
                                         "w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all group text-left",
                                         isActive
                                             ? "bg-primary border-primary text-white shadow-lg shadow-primary/20"
-                                            : "bg-white border-zinc-100 text-zinc-600 hover:border-primary/50"
+                                            : "bg-white border-zinc-100 text-zinc-600 hover:border-primary/50",
+                                        user?.rol === 'DIRECTOR_DEPENDENCIA' && "cursor-default"
                                     )}
                                 >
                                     <div className="flex items-center gap-3 font-black text-[10px] uppercase italic tracking-tighter">

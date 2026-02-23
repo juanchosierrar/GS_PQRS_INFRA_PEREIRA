@@ -114,6 +114,12 @@ function SidebarContent({ isOpen, onClose }: SidebarProps) {
                             label="Panel Principal"
                             active={pathname === '/admin' && (activeTab === 'solicitudes' || !activeTab)}
                         />
+                        <NavItem
+                            href="/admin?tab=estadisticas"
+                            icon={BarChart3}
+                            label="Reportes de Gestión"
+                            active={pathname === '/admin' && activeTab === 'estadisticas'}
+                        />
                     </div>
 
                     {/* Gestión Group */}
@@ -132,7 +138,7 @@ function SidebarContent({ isOpen, onClose }: SidebarProps) {
                             <NavItem
                                 href={depLink}
                                 icon={Building2}
-                                label="Dependencias"
+                                label={user?.rol === 'DIRECTOR_DEPENDENCIA' ? 'Mi Dependencia' : 'Dependencias'}
                                 active={pathname.includes('/admin/dependencias') || pathname.includes('tab=dependencias')}
                             />
                             <NavItem
@@ -159,18 +165,12 @@ function SidebarContent({ isOpen, onClose }: SidebarProps) {
                         </div>
                     </div>
 
-                    {/* Reportes y Configuración */}
+                    {/* Configuración */}
                     <div className="space-y-3">
                         <h3 className="px-4 text-[10px] font-black text-sky-700/80 uppercase tracking-[0.2em]">
                             Administración
                         </h3>
                         <div className="space-y-1">
-                            <NavItem
-                                href="/admin?tab=estadisticas"
-                                icon={BarChart3}
-                                label="Reportes de Gestión"
-                                active={pathname === '/admin' && activeTab === 'estadisticas'}
-                            />
                             <NavItem
                                 href="/admin/config"
                                 icon={Settings}

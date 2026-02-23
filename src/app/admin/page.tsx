@@ -37,6 +37,15 @@ function DashboardContent() {
     const [filterEstado, setFilterEstado] = useState<string>('');
     const [filterKpi, setFilterKpi] = useState<'all' | 'critical' | 'soon' | 'resolved' | null>(null);
 
+    // Bloquear filtro de dependencia si es Director
+    useEffect(() => {
+        if (user?.rol === 'DIRECTOR_DEPENDENCIA' && user.dependenciaId) {
+            if (filterDependencia !== user.dependenciaId) {
+                setFilterDependencia(user.dependenciaId);
+            }
+        }
+    }, [user, filterDependencia]);
+
     useEffect(() => {
         if (tabParam && tabParam !== activeTab) {
             setActiveTab(tabParam);
@@ -351,10 +360,12 @@ function DashboardContent() {
                                 onChange={(e) => setFilterDependencia(e.target.value)}
                                 className="w-full px-6 py-4 rounded-2xl border-2 border-zinc-100 focus:border-blue-600 focus:outline-none font-black text-xs uppercase tracking-widest bg-zinc-50/50 transition-all hover:bg-white disabled:opacity-70 disabled:grayscale-[0.5]"
                             >
-                                <option value="">Todas las Dependencias</option>
-                                {DEPENDENCIAS.map((dep) => (
-                                    <option key={dep.id} value={dep.id}>{dep.nombre}</option>
-                                ))}
+                                {user?.rol !== 'DIRECTOR_DEPENDENCIA' && <option value="">Todas las Dependencias</option>}
+                                {DEPENDENCIAS
+                                    .filter(dep => user?.rol !== 'DIRECTOR_DEPENDENCIA' || dep.id === user.dependenciaId)
+                                    .map((dep) => (
+                                        <option key={dep.id} value={dep.id}>{dep.nombre}</option>
+                                    ))}
                             </select>
                         </div>
 

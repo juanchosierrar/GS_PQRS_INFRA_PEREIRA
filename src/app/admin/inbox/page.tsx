@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useMemo } from 'react';
+import { Suspense, useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PQRService } from '@/services/pqr.service';
 import { UserService } from '@/services/user.service';
@@ -37,6 +37,15 @@ function InboxContent() {
     const [filterDependencia, setFilterDependencia] = useState(user?.rol === 'DIRECTOR_DEPENDENCIA' ? user.dependenciaId : '');
     const [filterEstado, setFilterEstado] = useState('');
     const [filterKpi, setFilterKpi] = useState<'all' | 'critical' | 'soon' | 'resolved' | null>(null);
+
+    // Bloquear filtro de dependencia si es Director
+    useEffect(() => {
+        if (user?.rol === 'DIRECTOR_DEPENDENCIA' && user.dependenciaId) {
+            if (filterDependencia !== user.dependenciaId) {
+                setFilterDependencia(user.dependenciaId);
+            }
+        }
+    }, [user, filterDependencia]);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -457,10 +466,12 @@ function InboxContent() {
                             onChange={(e) => setFilterDependencia(e.target.value)}
                             className="w-full px-5 py-4 rounded-2xl border-2 border-zinc-100 focus:border-primary focus:outline-none font-bold text-sm bg-zinc-50/50 transition-all hover:bg-white disabled:opacity-70 disabled:grayscale-[0.5]"
                         >
-                            <option value="">Todas</option>
-                            {DEPENDENCIAS.map(d => (
-                                <option key={d.id} value={d.id}>{d.nombre}</option>
-                            ))}
+                            {user?.rol !== 'DIRECTOR_DEPENDENCIA' && <option value="">Todas</option>}
+                            {DEPENDENCIAS
+                                .filter(dep => user?.rol !== 'DIRECTOR_DEPENDENCIA' || dep.id === user.dependenciaId)
+                                .map(d => (
+                                    <option key={d.id} value={d.id}>{d.nombre}</option>
+                                ))}
                         </select>
                     </div>
                     <button
