@@ -109,12 +109,6 @@ function SidebarContent({ isOpen, onClose }: SidebarProps) {
                     {/* General Group */}
                     <div className="space-y-1">
                         <NavItem
-                            href="/admin"
-                            icon={LayoutDashboard}
-                            label="Panel Principal"
-                            active={pathname === '/admin' && (activeTab === 'solicitudes' || !activeTab)}
-                        />
-                        <NavItem
                             href="/admin?tab=estadisticas"
                             icon={BarChart3}
                             label="Reportes de Gestión"
